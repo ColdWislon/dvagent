@@ -1,0 +1,37 @@
+// <proto>_reg_adapter -- reg <-> bus translation for the <proto> bus
+// Substitute <proto> and map to the bus item's address/data/rw fields.
+`ifndef <PROTO>_REG_ADAPTER_SVH
+`define <PROTO>_REG_ADAPTER_SVH
+
+class <proto>_reg_adapter extends uvm_reg_adapter;
+  `uvm_object_utils(<proto>_reg_adapter)
+
+  function new(string name = "<proto>_reg_adapter");
+    super.new(name);
+    supports_byte_enable = 0;
+    provides_responses   = 1;
+  endfunction
+
+  virtual function uvm_sequence_item reg2bus(const ref uvm_reg_bus_op rw);
+    <proto>_item t = <proto>_item::type_id::create("t");
+    t.addr = rw.addr;
+    t.data = rw.data;
+    // t.rw = (rw.kind == UVM_READ) ? READ : WRITE;
+    return t;
+  endfunction
+
+  virtual function void bus2reg(uvm_sequence_item bus_item, ref uvm_reg_bus_op rw);
+    <proto>_item t;
+    if (!$cast(t, bus_item)) begin
+      `uvm_fatal("REG_ADAPTER", "bus2reg cast failed")
+      return;
+    end
+    rw.addr   = t.addr;
+    rw.data   = t.data;
+    // rw.kind = (t.rw == READ) ? UVM_READ : UVM_WRITE;
+    rw.status = UVM_IS_OK;
+  endfunction
+
+endclass : <proto>_reg_adapter
+
+`endif // <PROTO>_REG_ADAPTER_SVH

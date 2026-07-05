@@ -1,0 +1,26 @@
+// <proto>_agent_cfg -- knobs + virtual interface handle for the <proto> agent
+// Substitute <proto>/<PROTO>. Set at top level; get in agent/driver/monitor.
+`ifndef <PROTO>_AGENT_CFG_SVH
+`define <PROTO>_AGENT_CFG_SVH
+
+class <proto>_agent_cfg extends uvm_object;
+  `uvm_object_utils(<proto>_agent_cfg)
+
+  uvm_active_passive_enum is_active = UVM_ACTIVE;
+  virtual <proto>_if      vif;
+  rand int unsigned       inject_err_pct = 0;
+
+  constraint c_err { inject_err_pct inside {[0:100]}; }
+
+  function new(string name = "<proto>_agent_cfg");
+    super.new(name);
+  endfunction
+
+endclass : <proto>_agent_cfg
+
+// ---- top-level wiring (in the test/base or tb top), for reference ----
+// <proto>_agent_cfg cfg = <proto>_agent_cfg::type_id::create("cfg");
+// cfg.vif = tb_top.<proto>_if_inst;
+// uvm_config_db#(<proto>_agent_cfg)::set(this, "m_env.m_master_agent", "cfg", cfg);
+
+`endif // <PROTO>_AGENT_CFG_SVH

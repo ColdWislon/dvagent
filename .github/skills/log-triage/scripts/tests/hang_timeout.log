@@ -1,0 +1,5 @@
+UVM_INFO @ 0: reporter [RNTST] Running test drain_test...
+UVM_INFO @ 5000 ns: uvm_test_top.m_env.m_master_agent.m_driver [axi_driver] driving burst 12
+UVM_INFO @ 5210 ns: uvm_test_top.m_env.m_master_agent.m_monitor [axi_monitor] observed beat 3
+xmsim: *W,RNQUIE: Simulation is complete.
+Watchdog: phase timeout reached at 10000000 ns, ending simulation

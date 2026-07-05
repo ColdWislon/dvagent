@@ -1,0 +1,6 @@
+UVM_INFO @ 0: reporter [RNTST] Running test quiet_test...
+UVM_ERROR @ 400 ns: uvm_test_top.m_env.m_scoreboard [axi_scoreboard] unexpected: beat with no request
+UVM_INFO @ 900 ns: reporter [RESULT] TEST PASSED
+--- UVM Report Summary ---
+UVM_ERROR :    0
+UVM_FATAL :    0

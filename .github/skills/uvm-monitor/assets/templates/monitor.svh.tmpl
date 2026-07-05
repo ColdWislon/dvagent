@@ -1,0 +1,44 @@
+// <proto>_monitor -- reconstructs <proto>_item from the <proto> interface
+// Substitute <proto>/<PROTO>; match vif and cfg to the house config object.
+`ifndef <PROTO>_MONITOR_SVH
+`define <PROTO>_MONITOR_SVH
+
+class <proto>_monitor extends uvm_monitor;
+  `uvm_component_utils(<proto>_monitor)
+
+  uvm_analysis_port #(<proto>_item) ap;
+  virtual <proto>_if                vif;
+  <proto>_agent_cfg                 m_cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+    ap = new("ap", this);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    if (!uvm_config_db#(<proto>_agent_cfg)::get(this, "", "cfg", m_cfg))
+      `uvm_fatal(get_type_name(), "no agent cfg")
+    vif = m_cfg.vif;
+    if (vif == null) `uvm_fatal(get_type_name(), "null virtual interface")
+  endfunction
+
+  virtual task run_phase(uvm_phase phase);
+    forever begin
+      fork
+        collect();               // reconstruct + ap.write(tr)
+        @(negedge vif.rst_n);    // abort partial txn on reset
+      join_any
+      disable fork;
+    end
+  endtask
+
+  virtual task collect();
+    <proto>_item tr;
+    // TODO: sample vif, build tr, then:
+    // ap.write(tr);
+  endtask
+
+endclass : <proto>_monitor
+
+`endif // <PROTO>_MONITOR_SVH

@@ -1,0 +1,31 @@
+// <proto>_item -- transaction for the <proto> protocol
+// Substitute <proto> (snake_case), <PROTO> (UPPER), fields and constraints.
+`ifndef <PROTO>_ITEM_SVH
+`define <PROTO>_ITEM_SVH
+
+class <proto>_item extends uvm_sequence_item;
+
+  rand bit [31:0] addr;
+  rand bit [31:0] data;
+  rand int        len;
+
+  `uvm_object_utils_begin(<proto>_item)
+    `uvm_field_int(addr, UVM_ALL_ON)
+    `uvm_field_int(data, UVM_ALL_ON)
+    `uvm_field_int(len,  UVM_ALL_ON)
+  `uvm_object_utils_end
+
+  constraint c_align { addr[1:0] == 2'b00; }
+  constraint c_len   { len inside {[1:16]}; }
+
+  function new(string name = "<proto>_item");
+    super.new(name);
+  endfunction
+
+  virtual function string convert2string();
+    return $sformatf("addr=0x%08h data=0x%08h len=%0d", addr, data, len);
+  endfunction
+
+endclass : <proto>_item
+
+`endif // <PROTO>_ITEM_SVH

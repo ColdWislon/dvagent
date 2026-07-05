@@ -1,0 +1,121 @@
+copilot-dv-agents — full file manifest
+Generated: 2026-07-05 21:40 UTC
+
+NOTE: most of this pack lives under .github/ (a HIDDEN folder).
+  macOS Finder: Cmd+Shift+.   Windows Explorer: View > Hidden items
+  Terminal: ls -a  /  find . -type f   Git tracks .github/ normally.
+
+Counts:
+  agents  : 7
+  skills  : 30
+  prompts : 12
+  scripts : 3
+  files   : 106
+
+Full tree:
+  .github/agents/dv-checker-writer.agent.md
+  .github/agents/dv-coverage-closer.agent.md
+  .github/agents/dv-debug.agent.md
+  .github/agents/dv-env-architect.agent.md
+  .github/agents/dv-reviewer.agent.md
+  .github/agents/dv-stim-writer.agent.md
+  .github/agents/dv-test-writer.agent.md
+  .github/copilot-instructions.md
+  .github/instructions/high-trust-lockdown.instructions.md
+  .github/prompts/build-stimulus.prompt.md
+  .github/prompts/close-coverage-holes.prompt.md
+  .github/prompts/close-vplan-item.prompt.md
+  .github/prompts/generate-environment.prompt.md
+  .github/prompts/generate-vplan.prompt.md
+  .github/prompts/learn-dv-wrapper.prompt.md
+  .github/prompts/pre-mr-review.prompt.md
+  .github/prompts/qualify-checkers.prompt.md
+  .github/prompts/review-environment.prompt.md
+  .github/prompts/status.prompt.md
+  .github/prompts/triage-failure.prompt.md
+  .github/prompts/write-checkers.prompt.md
+  .github/skills/SKILLS-README.md
+  .github/skills/amba-ahb/SKILL.md
+  .github/skills/amba-apb/SKILL.md
+  .github/skills/amba-axi/SKILL.md
+  .github/skills/coverage-closure/SKILL.md
+  .github/skills/debug-playbook/SKILL.md
+  .github/skills/debug-strategy/SKILL.md
+  .github/skills/debug-strategy/references/playbooks.md
+  .github/skills/deprecation-lint/SKILL.md
+  .github/skills/deprecation-lint/scripts/lint.py
+  .github/skills/deprecation-lint/scripts/tests/README.md
+  .github/skills/deprecation-lint/scripts/tests/bad_env.sv
+  .github/skills/deprecation-lint/scripts/tests/bad_scoreboard.sv
+  .github/skills/deprecation-lint/scripts/tests/good_scoreboard.sv
+  .github/skills/dv-wrapper/SKILL.md
+  .github/skills/log-triage/SKILL.md
+  .github/skills/log-triage/scripts/tests/README.md
+  .github/skills/log-triage/scripts/tests/compile_err.log
+  .github/skills/log-triage/scripts/tests/false_pass.log
+  .github/skills/log-triage/scripts/tests/hang_timeout.log
+  .github/skills/log-triage/scripts/tests/sb_mismatch_seed1.log
+  .github/skills/log-triage/scripts/tests/sb_mismatch_seed2.log
+  .github/skills/log-triage/scripts/tests/tb_fatal_vif.log
+  .github/skills/log-triage/scripts/triage_log.py
+  .github/skills/naming-conventions/SKILL.md
+  .github/skills/phasing-check/SKILL.md
+  .github/skills/regression-triage/SKILL.md
+  .github/skills/uvm-agent/SKILL.md
+  .github/skills/uvm-agent/assets/templates/agent.svh.tmpl
+  .github/skills/uvm-coding-standard/SKILL.md
+  .github/skills/uvm-config/SKILL.md
+  .github/skills/uvm-config/assets/templates/config.svh.tmpl
+  .github/skills/uvm-coverage/SKILL.md
+  .github/skills/uvm-coverage/assets/templates/coverage.svh.tmpl
+  .github/skills/uvm-driver/SKILL.md
+  .github/skills/uvm-driver/assets/templates/driver.svh.tmpl
+  .github/skills/uvm-env/SKILL.md
+  .github/skills/uvm-env/assets/templates/env.svh.tmpl
+  .github/skills/uvm-monitor/SKILL.md
+  .github/skills/uvm-monitor/assets/templates/monitor.svh.tmpl
+  .github/skills/uvm-ral/SKILL.md
+  .github/skills/uvm-ral/assets/templates/ral_adapter.svh.tmpl
+  .github/skills/uvm-ral/assets/templates/ral_block.svh.tmpl
+  .github/skills/uvm-scoreboard/SKILL.md
+  .github/skills/uvm-scoreboard/assets/templates/scoreboard.svh.tmpl
+  .github/skills/uvm-sequence-item/SKILL.md
+  .github/skills/uvm-sequence-item/assets/templates/seq_item.svh.tmpl
+  .github/skills/uvm-sequence/SKILL.md
+  .github/skills/uvm-sequence/assets/templates/sequence.svh.tmpl
+  .github/skills/uvm-test/SKILL.md
+  .github/skills/uvm-test/assets/templates/test.svh.tmpl
+  .github/skills/uvm-test/references/patterns.md
+  .github/skills/uvm-vsequence/SKILL.md
+  .github/skills/uvm-vsequence/assets/templates/vsequence.svh.tmpl
+  .github/skills/verif-cockpit/SKILL.md
+  .github/skills/verif-cockpit/scripts/cockpit.py
+  .github/skills/verif-cockpit/scripts/tests/README.md
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/spi_ip/dv/status/.keep
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/uart_ip/docs/vplan.md
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/uart_ip/dv/cov/exclusion_requests.md
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/uart_ip/dv/status/lint.json
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/uart_ip/dv/status/review.json
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/uart_ip/dv/status/session_20260704.json
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/uart_ip/dv/status/triage.json
+  .github/skills/verif-cockpit/scripts/tests/fake_repo/uart_ip/dv/tb/uart_scoreboard.svh
+  .github/skills/verif-env-review/SKILL.md
+  .github/skills/verif-env-review/references/testbench-code-review.md
+  .github/skills/vertical-reuse/SKILL.md
+  .github/skills/vplan-common-topics/SKILL.md
+  .github/skills/xcelium-flow/SKILL.md
+  MANIFEST.txt
+  README.md
+  USERGUIDE.md
+  chkq-kit/chkq_pkg.sv
+  chkq-kit/example_neg_test.sv
+  cockpit.ini
+  external-vplan-kit/README.md
+  external-vplan-kit/VPLAN_DRAFTING_PROMPT.md
+  repo-templates/docs/methodology/definition-of-done.md
+  repo-templates/ip/docs/CLAUDE.md
+  repo-templates/ip/docs/vplan.md
+  repo-templates/ip/dv/cov/exclusion_requests.md
+  repo-templates/ip/dv/lists/chkq.list
+  repo-templates/ip/dv/lists/sanity.list
+  repo-templates/ip/dv/tests/negative/chkq_paths.svh

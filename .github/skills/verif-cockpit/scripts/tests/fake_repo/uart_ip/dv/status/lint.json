@@ -1,0 +1,5 @@
+{"summary":{"errors":1,"warnings":1,"dod_pass":false},
+ "findings":[{"rule_id":"indep.driver_to_sb","severity":"error","file":"dv/tb/uart_env.svh","line":42,
+  "message":"driver ap connected to scoreboard","fix":"connect monitors"},
+ {"rule_id":"indep.sb_config_golden","severity":"warn","file":"dv/tb/uart_sb.svh","line":18,
+  "message":"scoreboard reads config_db","fix":"confirm design cfg"}]}

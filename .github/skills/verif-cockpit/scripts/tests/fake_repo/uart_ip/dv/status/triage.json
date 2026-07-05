@@ -1,0 +1,4 @@
+{"session":"nightly","total_fail":41,"clusters":[
+ {"id":1,"size":38,"signature":"UVM_FATAL:uart_driver:null virtual interface","verdict":"tb_bug",
+  "repro":{"test":"smoke_test","seed":91231}},
+ {"id":2,"size":3,"signature":"flaky:timeout","verdict":"flaky","quarantine":true}]}

@@ -1,0 +1,43 @@
+// <proto>_agent -- driver + monitor + sequencer for the <proto> interface
+// Substitute <proto>/<PROTO>. is_active comes from config, not hard-coded.
+`ifndef <PROTO>_AGENT_SVH
+`define <PROTO>_AGENT_SVH
+
+class <proto>_agent extends uvm_agent;
+  `uvm_component_utils(<proto>_agent)
+
+  uvm_analysis_port #(<proto>_item) ap;
+
+  <proto>_driver                    m_driver;
+  <proto>_monitor                   m_monitor;
+  uvm_sequencer #(<proto>_item)     m_sequencer;
+  <proto>_agent_cfg                 m_cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+    ap = new("ap", this);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    if (!uvm_config_db#(<proto>_agent_cfg)::get(this, "", "cfg", m_cfg))
+      `uvm_fatal(get_type_name(), "no agent cfg")
+
+    m_monitor = <proto>_monitor::type_id::create("m_monitor", this);
+
+    if (get_is_active() == UVM_ACTIVE) begin
+      m_sequencer = uvm_sequencer#(<proto>_item)::type_id::create("m_sequencer", this);
+      m_driver    = <proto>_driver::type_id::create("m_driver", this);
+    end
+  endfunction
+
+  virtual function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+    m_monitor.ap.connect(ap);
+    if (get_is_active() == UVM_ACTIVE)
+      m_driver.seq_item_port.connect(m_sequencer.seq_item_export);
+  endfunction
+
+endclass : <proto>_agent
+
+`endif // <PROTO>_AGENT_SVH

@@ -1,0 +1,6 @@
+xcelium> run
+UVM_INFO @ 0: reporter [RNTST] Running test burst_wr_test...
+UVM_ERROR @ 12770 ns: uvm_test_top.m_env.m_scoreboard [axi_scoreboard] mismatch exp=0x00BEEF42 got=0x00BEEF40 addr=0x40002020
+--- UVM Report Summary ---
+UVM_ERROR :    1
+UVM_FATAL :    0

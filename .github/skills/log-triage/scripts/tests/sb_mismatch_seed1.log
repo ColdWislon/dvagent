@@ -1,0 +1,9 @@
+xcelium> run
+UVM_INFO @ 0: reporter [RNTST] Running test burst_wr_test...
+UVM_INFO @ 1200 ns: uvm_test_top.m_env [ENV] traffic started
+UVM_ERROR @ 84210 ns: uvm_test_top.m_env.m_scoreboard [axi_scoreboard] mismatch exp=0xDEAD1234 got=0xDEAD1230 addr=0x40001000
+UVM_ERROR @ 84290 ns: uvm_test_top.m_env.m_scoreboard [axi_scoreboard] mismatch exp=0xCAFE0001 got=0xCAFE0000 addr=0x40001008
+UVM_INFO @ 99000 ns: reporter [FINISH] ...
+--- UVM Report Summary ---
+UVM_ERROR :    2
+UVM_FATAL :    0

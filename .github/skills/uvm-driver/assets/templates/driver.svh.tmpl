@@ -1,0 +1,51 @@
+// <proto>_driver -- drives <proto>_item onto the <proto> interface
+// Substitute <proto>/<PROTO>; match vif and cfg to the house config object.
+`ifndef <PROTO>_DRIVER_SVH
+`define <PROTO>_DRIVER_SVH
+
+class <proto>_driver extends uvm_driver #(<proto>_item);
+  `uvm_component_utils(<proto>_driver)
+
+  virtual <proto>_if     vif;
+  <proto>_agent_cfg      m_cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    if (!uvm_config_db#(<proto>_agent_cfg)::get(this, "", "cfg", m_cfg))
+      `uvm_fatal(get_type_name(), "no agent cfg")
+    vif = m_cfg.vif;
+    if (vif == null) `uvm_fatal(get_type_name(), "null virtual interface")
+  endfunction
+
+  virtual task run_phase(uvm_phase phase);
+    forever begin
+      fork
+        begin : drive_thread
+          seq_item_port.get_next_item(req);
+          drive(req);
+          seq_item_port.item_done();
+        end
+        begin : reset_thread
+          @(negedge vif.rst_n);
+          idle();
+        end
+      join_any
+      disable fork;
+    end
+  endtask
+
+  virtual task drive(<proto>_item item);
+    // TODO: protocol drive on vif using item fields
+  endtask
+
+  virtual task idle();
+    // TODO: drive controlled signals to inactive state
+  endtask
+
+endclass : <proto>_driver
+
+`endif // <PROTO>_DRIVER_SVH

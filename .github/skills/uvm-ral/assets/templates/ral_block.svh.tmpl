@@ -1,0 +1,38 @@
+// <blk>_reg_block -- register model (prefer generating from IP-XACT/RDL)
+// Substitute <blk>/<BLK>. Offsets/access/reset must match the register source.
+`ifndef <BLK>_REG_BLOCK_SVH
+`define <BLK>_REG_BLOCK_SVH
+
+class <blk>_ctrl_reg extends uvm_reg;
+  `uvm_object_utils(<blk>_ctrl_reg)
+  rand uvm_reg_field enable;
+  rand uvm_reg_field mode;
+  function new(string name = "<blk>_ctrl_reg");
+    super.new(name, 32, UVM_NO_COVERAGE);
+  endfunction
+  virtual function void build();
+    enable = uvm_reg_field::type_id::create("enable");
+    enable.configure(this, 1, 0, "RW", 0, 1'h0, 1, 1, 0);
+    mode   = uvm_reg_field::type_id::create("mode");
+    mode.configure(this, 2, 1, "RW", 0, 2'h0, 1, 1, 0);
+  endfunction
+endclass
+
+class <blk>_reg_block extends uvm_reg_block;
+  `uvm_object_utils(<blk>_reg_block)
+  rand <blk>_ctrl_reg ctrl;
+  uvm_reg_map map;
+  function new(string name = "<blk>_reg_block");
+    super.new(name, UVM_NO_COVERAGE);
+  endfunction
+  virtual function void build();
+    ctrl = <blk>_ctrl_reg::type_id::create("ctrl");
+    ctrl.configure(this);
+    ctrl.build();
+    map = create_map("map", 0, 4, UVM_LITTLE_ENDIAN);
+    map.add_reg(ctrl, 'h0, "RW");
+    lock_model();
+  endfunction
+endclass : <blk>_reg_block
+
+`endif // <BLK>_REG_BLOCK_SVH

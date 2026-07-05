@@ -1,0 +1,27 @@
+// <feat>_vseq -- orchestrates sub-sequences across agents via the vsequencer
+// Substitute <feat>/<FEAT> and the vsequencer type + sub-sequencer handles.
+`ifndef <FEAT>_VSEQ_SVH
+`define <FEAT>_VSEQ_SVH
+
+class <feat>_vseq extends <proj>_vseq_base;   // base declares nothing pin-level
+  `uvm_object_utils(<feat>_vseq)
+  `uvm_declare_p_sequencer(<proj>_vsequencer)
+
+  function new(string name = "<feat>_vseq");
+    super.new(name);
+  endfunction
+
+  virtual task body();
+    <feat>_seq a_seq;
+    <feat>_seq b_seq;
+    a_seq = <feat>_seq::type_id::create("a_seq");
+    b_seq = <feat>_seq::type_id::create("b_seq");
+    fork
+      a_seq.start(p_sequencer.m_master_seqr);
+      b_seq.start(p_sequencer.m_slave_seqr);
+    join
+  endtask
+
+endclass : <feat>_vseq
+
+`endif // <FEAT>_VSEQ_SVH

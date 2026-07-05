@@ -1,0 +1,53 @@
+// <proj>_scoreboard -- compares result-side vs expected (from stimulus-side)
+// Substitute <proj>/<PROJ>/<proto>. Dual stream via analysis_imp_decl.
+`ifndef <PROJ>_SCOREBOARD_SVH
+`define <PROJ>_SCOREBOARD_SVH
+
+`uvm_analysis_imp_decl(_master)
+`uvm_analysis_imp_decl(_slave)
+
+class <proj>_scoreboard extends uvm_scoreboard;
+  `uvm_component_utils(<proj>_scoreboard)
+
+  uvm_analysis_imp_master #(<proto>_item, <proj>_scoreboard) imp_master;
+  uvm_analysis_imp_slave  #(<proto>_item, <proj>_scoreboard) imp_slave;
+
+  <proto>_item expected_q[$];
+  int          n_checked;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+    imp_master = new("imp_master", this);
+    imp_slave  = new("imp_slave",  this);
+  endfunction
+
+  // stimulus side -> compute expected
+  virtual function void write_master(<proto>_item t);
+    expected_q.push_back(t);   // or push transformed expected value
+  endfunction
+
+  // result side -> compare
+  virtual function void write_slave(<proto>_item t);
+    <proto>_item exp;
+    if (expected_q.size() == 0) begin
+      `uvm_error("SCBD_UNEXPECTED", $sformatf("unexpected: %s", t.convert2string()))
+      return;
+    end
+    exp = expected_q.pop_front();
+    if (!t.compare(exp))
+      `uvm_error("SCBD_DATA_CMP",
+        $sformatf("mismatch\n exp: %s\n got: %s", exp.convert2string(), t.convert2string()))
+    n_checked++;
+  endfunction
+
+  virtual function void check_phase(uvm_phase phase);
+    super.check_phase(phase);
+    if (expected_q.size() != 0)
+      `uvm_error("SCBD_RESIDUAL", $sformatf("%0d unmatched expected txns", expected_q.size()))
+    if (n_checked == 0)
+      `uvm_error("SCBD_NO_TRAFFIC", "scoreboard checked 0 transactions")
+  endfunction
+
+endclass : <proj>_scoreboard
+
+`endif // <PROJ>_SCOREBOARD_SVH

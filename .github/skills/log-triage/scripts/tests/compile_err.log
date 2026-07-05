@@ -1,0 +1,3 @@
+xmvlog: *E,EXPSMC (tb/axi_item.svh,42|18): expecting a semicolon (';') [SystemVerilog].
+xmvlog: *E,MISDLM (tb/axi_item.svh,44|2): missing endclass delimiter.
+xrun: *E,VLGERR: An error occurred during parsing.

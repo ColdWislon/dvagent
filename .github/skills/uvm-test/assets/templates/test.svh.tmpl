@@ -1,0 +1,45 @@
+// -----------------------------------------------------------------------------
+// <feat>_test  --  <one-line scenario description>
+// VP-xxx
+// -----------------------------------------------------------------------------
+// Substitute: <feat> (snake_case), <FEAT> (UPPER), <proj> (base-test prefix),
+// <feat>_vseq (virtual sequence). Match m_env / m_vsequencer to the base env's
+// actual handle names.
+`ifndef <FEAT>_TEST_SVH
+`define <FEAT>_TEST_SVH
+
+class <feat>_test extends <proj>_base_test;
+  `uvm_component_utils(<feat>_test)
+
+  function new(string name = "<feat>_test", uvm_component parent = null);
+    super.new(name, parent);
+  endfunction : new
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);   // base builds env / cfg / reporting
+
+    // --- config_db knobs for THIS test (scope to the subtree under test) ---
+    // uvm_config_db#(int)::set(this, "m_env.m_agentX", "is_active", UVM_ACTIVE);
+
+    // --- factory overrides for THIS test (keep types overridable) ---
+    // <base_seq>::type_id::set_type_override(<feat>_seq::get_type());
+  endfunction : build_phase
+
+  virtual task run_phase(uvm_phase phase);
+    <feat>_vseq vseq;
+    vseq = <feat>_vseq::type_id::create("vseq");
+
+    phase.raise_objection(this, "<feat>_test: start");
+
+    // configure vseq handles / knobs here, then randomize
+    if (!vseq.randomize())
+      `uvm_fatal(get_type_name(), "vseq randomization failed")
+
+    vseq.start(m_env.m_vsequencer);   // vsequencer owned by the base env
+
+    phase.drop_objection(this, "<feat>_test: done");
+  endtask : run_phase
+
+endclass : <feat>_test
+
+`endif // <FEAT>_TEST_SVH

@@ -1,0 +1,29 @@
+// <feat>_seq -- stimulus producing <proto>_item on a sequencer
+// Substitute <feat>/<FEAT>/<proto>. Expose knobs as rand members.
+`ifndef <FEAT>_SEQ_SVH
+`define <FEAT>_SEQ_SVH
+
+class <feat>_seq extends uvm_sequence #(<proto>_item);
+  `uvm_object_utils(<feat>_seq)
+
+  rand int unsigned n_items = 10;
+  constraint c_n { n_items inside {[1:64]}; }
+
+  function new(string name = "<feat>_seq");
+    super.new(name);
+  endfunction
+
+  virtual task body();
+    <proto>_item req;
+    repeat (n_items) begin
+      req = <proto>_item::type_id::create("req");
+      start_item(req);
+      if (!req.randomize() with { /* scenario constraints */ })
+        `uvm_fatal(get_type_name(), "item randomize failed")
+      finish_item(req);
+    end
+  endtask
+
+endclass : <feat>_seq
+
+`endif // <FEAT>_SEQ_SVH

@@ -1,0 +1,41 @@
+// <proj>_coverage -- functional coverage subscriber for <proto>_item
+// Substitute <proj>/<PROJ>/<proto>. Tag coverpoints with VP-xxx IDs.
+`ifndef <PROJ>_COVERAGE_SVH
+`define <PROJ>_COVERAGE_SVH
+
+class <proj>_coverage extends uvm_subscriber #(<proto>_item);
+  `uvm_component_utils(<proj>_coverage)
+
+  <proto>_item m_item;
+
+  covergroup cg_<proto>;
+    option.per_instance = 1;
+
+    // VP-xxx
+    cp_addr : coverpoint m_item.addr[31:28];
+
+    // VP-xxx
+    cp_len  : coverpoint m_item.len {
+      bins short  = {[1:4]};
+      bins mid    = {[5:12]};
+      bins long   = {[13:16]};
+      illegal_bins bad = {0, [17:$]};
+    }
+
+    // VP-xxx
+    x_addr_len : cross cp_addr, cp_len;
+  endgroup
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+    cg_<proto> = new();
+  endfunction
+
+  virtual function void write(<proto>_item t);
+    m_item = t;
+    cg_<proto>.sample();
+  endfunction
+
+endclass : <proj>_coverage
+
+`endif // <PROJ>_COVERAGE_SVH

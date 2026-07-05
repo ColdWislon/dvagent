@@ -1,0 +1,6 @@
+UVM_INFO @ 0: reporter [RNTST] Running test smoke_test...
+UVM_FATAL @ 0 ns: uvm_test_top.m_env.m_master_agent.m_driver [axi_driver] null virtual interface
+UVM_INFO @ 0 ns: reporter [FINISH] exiting due to fatal
+--- UVM Report Summary ---
+UVM_ERROR :    0
+UVM_FATAL :    1
