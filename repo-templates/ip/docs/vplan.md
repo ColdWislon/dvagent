@@ -1,0 +1,53 @@
+# <IP_NAME> Verification Plan
+
+[TEMPLATE. If your vplans live in vPlanner/vManager, this file is the
+agent-readable EXPORT — regenerate it in CI so it never drifts. Agents
+refuse untraceable work by design, so every item needs a stable VP id.]
+
+Revision anchors — keep current, results are meaningless without them:
+- Spec revision this vplan derives from: [doc id + rev + date]
+- RTL baseline last reconciled against: [git rev / release tag + date]
+- On spec/RTL feature change: EXTEND with new IDs, mark superseded items
+  `Status: obsolete (rev X)` — never delete or renumber (closed items
+  are evidence). Items invalidated by an ECO revert to `open` with a
+  note.
+
+Item format — one table row per verifiable requirement:
+
+| ID | Spec ref | Requirement (verifiable statement) | Coverage mapping | Check mapping | Status |
+|----|----------|-------------------------------------|------------------|---------------|--------|
+| VP-<IP>-001 | §x.y | [What must be exercised/proven, phrased so a test either does it or doesn't] | `cg_<name>.cp_<name>` bins [...] | `SCBD_...` / SVA label | open / stimulus-done / closed |
+| VP-<IP>-002 | §x.z | ... | ... | ... | open |
+
+## Cross-cutting completeness matrix
+
+[MANDATORY. Every category from the vplan-common-topics skill resolved:
+item IDs, or N/A with justification. An empty row = the vplan is not
+reviewable. Categories: reset, clocks, CDC/resynchronizers, interrupts,
+registers, error handling, capacity/boundaries, backpressure/perf, low
+power, concurrency/stress, configuration space, security, debug/DFT.]
+
+| Topic | Resolution |
+|-------|------------|
+| Reset | VP-<IP>-0xx..0yy |
+| Clocks | VP-<IP>-0zz / N/A — single clock domain (see block CLAUDE.md) |
+| CDC / resynchronizers | ... |
+| ... | ... |
+
+## Open questions
+[Spec ambiguities AND design-intent questions from spec-silent items.]
+
+Rules:
+- "Requirement" states intent (what behavior, which corners), not test
+  implementation.
+- Items covering cross-cutting topics the spec is silent on carry the
+  marker `[design-intent — spec silent]` in the Requirement cell and a
+  matching designer question in Open questions; they are not closable
+  until the intent is confirmed in writing.
+- N/A entries in the matrix cite their reason (architecture fact, flow
+  scope, program decision) — "not thought about" is not N/A.
+- Coverage mapping lists the bins whose hits constitute evidence; check
+  mapping names the check ID(s) that judge correctness. An item with
+  coverage but no check mapping is unverified-by-construction — flag it.
+- Status `closed` requires: mapped bins hit in the merged DB + mapped
+  checks active (present in chkq list) + MR merged.

@@ -1,0 +1,7 @@
+# Checker-qualification (negative test) list — <IP_NAME>
+# Runs in every regression with +CHKQ_ENABLE and coverage OFF.
+# Excluded from IMC merges. A CHKQ_BLIND failure = a checker went blind:
+# treat as high-severity; some prior clean report may be unsound.
+# Format: <negative_test> <seed> +CHKQ_ENABLE
+# [one line per qualified check ID — kept in sync with the check ID
+#  inventory in docs/CLAUDE.md]
