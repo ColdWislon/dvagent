@@ -29,12 +29,18 @@ BALANCED = [
 
 
 def sv_files(env_root):
-    return sorted(env_root.rglob("*.sv"))
+    # .github/ carries the Copilot pack verbatim, including deliberately-bad
+    # lint fixtures - only the env's own SV is subject to these checks.
+    return sorted(
+        p for p in env_root.rglob("*.sv")
+        if ".github" not in p.relative_to(env_root).parts
+    )
 
 
 def test_generated_env_has_sv_files(generated_env):
     # 2 agents x 9 + 11 env + 3 seq_lib + 3 tests + 2 tb
-    assert len(sv_files(generated_env)) == 37
+    # + 2 staged chkq kit files under dv/tests/negative/
+    assert len(sv_files(generated_env)) == 39
 
 
 def test_balanced_constructs(generated_env):
@@ -69,6 +75,8 @@ def test_package_includes_resolve(generated_env):
 def test_every_included_file_defines_something(generated_env):
     for path in sv_files(generated_env):
         if path.parent.name == "tb" or path.name.endswith("_pkg.sv"):
+            continue
+        if path.name == "example_neg_test.sv":  # chkq kit reference example
             continue
         text = strip_comments_and_strings(path.read_text())
         assert re.search(r"\b(class|interface|module)\b", text), path.name
@@ -123,6 +131,8 @@ def test_scoreboard_and_coverage_hookup(generated_env):
         assert f"`uvm_analysis_imp_decl(_{a})" in sb
         assert f"write_{a}" in sb
     assert "TODO" in sb
+    # the DV agent pack's cockpit/checker-writer key on this marker
+    assert "PLACEHOLDER-CHECK" in sb
     cov = (generated_env / "env/my_ip_ctrl_cov.sv").read_text()
     assert "covergroup" in cov and "coverpoint" in cov and "cross" in cov
     env = (generated_env / "env/my_ip_env.sv").read_text()

@@ -4,6 +4,7 @@ from uvm_gen import cli
 
 EXPECTED_BASE = [
     "README.md",
+    "GETTING_STARTED.md",
     ".gitignore",
     "verif_matrix.yaml",
     "cfg/my_ip.yaml",
@@ -59,18 +60,34 @@ def expected_files():
     return sorted(files)
 
 
-def test_full_example_generates_exact_file_set(generated_env):
+def test_full_example_generates_exact_file_set(examples_copy, gen, tmp_path):
+    # core environment only: the Copilot pack set is covered by test_copilot.py
+    env = gen(examples_copy / "my_ip.yaml", out=tmp_path / "core", extra=("--no-copilot",))
     actual = sorted(
-        str(p.relative_to(generated_env))
-        for p in generated_env.rglob("*")
-        if p.is_file()
+        str(p.relative_to(env)) for p in env.rglob("*") if p.is_file()
     )
     assert actual == expected_files()
+
+
+# Verbatim-copied trees (Copilot pack + kits) are not rendered - their
+# content is out of scope for jinja-leftover checks.
+COPIED_PREFIXES = (
+    ".github/",
+    "external-vplan-kit/",
+    "docs/methodology/",
+    "cfg/",
+    "cockpit.ini",
+    "dv/tests/negative/chkq_pkg.sv",
+    "dv/tests/negative/example_neg_test.sv",
+)
 
 
 def test_no_jinja_leftovers_or_empty_files(generated_env):
     for p in generated_env.rglob("*"):
         if not p.is_file():
+            continue
+        rel = str(p.relative_to(generated_env))
+        if rel.startswith(COPIED_PREFIXES):
             continue
         text = p.read_text(encoding="utf-8")
         assert text.strip(), f"{p} is empty"

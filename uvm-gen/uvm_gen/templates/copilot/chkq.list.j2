@@ -1,0 +1,16 @@
+# Checker-qualification (negative test) list — {{ ip }}
+# Runs with +CHKQ_ENABLE and coverage OFF; excluded from IMC merges.
+# A CHKQ_BLIND failure = a checker went blind: treat as high-severity;
+# some prior clean report may be unsound.
+#
+# Activation checklist for this uvm-gen environment (kit is staged only):
+#   1. uncomment the chkq block in sim/tb.f (compiles chkq_pkg)
+#   2. add {{ ip }}_chkq_base_test extending chkq_base_test reparented onto
+#      {{ ip }}_base_test (see dv/tests/negative/chkq_pkg.sv header)
+#   3. run: make -C sim run TEST=<neg_test> PLUSARGS='+CHKQ_ENABLE' \
+#           XRUN_OPTS='-access +rwc'
+#   Forced HDL paths live ONLY in dv/tests/negative/chkq_paths.svh.
+#
+# Format: <negative_test> <seed> +CHKQ_ENABLE
+# [one line per qualified check ID — kept in sync with the check ID
+#  inventory in docs/CLAUDE.md]

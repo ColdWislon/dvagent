@@ -1,0 +1,9 @@
+// Central registry of ALL hdl paths forced by chkq negative tests for {{ ip }}.
+// One audit point after every RTL restructure: fix paths here, re-run
+// dv/lists/chkq.list, done. Tests reference these localparams only —
+// a literal path in a test file is a review finding.
+// Naming: CHKQ_PATH_<CHECK_ID>.
+`ifndef {{ IP }}_CHKQ_PATHS_SVH
+`define {{ IP }}_CHKQ_PATHS_SVH
+// localparam string CHKQ_PATH_SCBD_DATA_CMP = "tb_top.dut.<TODO: forced signal>";
+`endif

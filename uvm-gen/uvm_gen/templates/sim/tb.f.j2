@@ -26,5 +26,12 @@
 ../seq_lib/{{ ip }}_seq_pkg.sv
 ../tests/{{ ip }}_test_pkg.sv
 
+{% if has_copilot %}
+# Checker-qualification kit (negative tests) - staged under dv/tests/negative/.
+# Uncomment to compile it; activation checklist: dv/lists/chkq.list.
+# +incdir+../dv/tests/negative
+# ../dv/tests/negative/chkq_pkg.sv
+
+{% endif %}
 # IP-level testbench top (drop this line for SoC reuse)
 ../tb/tb_top.sv

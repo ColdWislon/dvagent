@@ -1,0 +1,165 @@
+# Getting started — `{{ ip }}` verification environment
+
+New to this environment (or to the team)? This is your entry point. It takes
+you from a fresh checkout to your first passing simulation, then to your
+first real task{% if has_copilot %}, then to working with the Copilot DV agents{% endif %}. The
+full reference lives in [README.md](README.md).
+
+## 0. Prerequisites
+
+- **Cadence Xcelium** on PATH (`xrun`). The flow is Xcelium-only, single-step
+  `xrun` with the bundled UVM-1.2. On most sites: log into a farm/interactive
+  node and load the tool module first.
+- **python3 + PyYAML** (the make flow parses configuration YAMLs with it).
+{% if vips %}
+- **`CDN_VIP_ROOT`** — this environment requests Cadence VIP
+  ({% for v in vips %}{{ v.protocol|upper }} `{{ v.name }}`{% if not loop.last %}, {% endif %}{% endfor %}), so `make` refuses to run until
+  `export CDN_VIP_ROOT=<your Cadence VIP install root>` is set. The VIPs
+  themselves stay compile-clean placeholders until you enable them
+  (`sim/vip_<protocol>.f`) — the variable just has to exist.
+{% endif %}
+{% if has_copilot %}
+- Optional (for the agent workflow, step 5): VS Code with the GitHub Copilot
+  extension, opened on this repo via Remote-SSH into the machine where `xrun`
+  resolves — a local laptop window cannot simulate anything.
+{% endif %}
+
+## 1. First 15 minutes — prove the environment works
+
+```bash
+cd sim
+make compile                       # 1) elaboration sanity - no test, stub DUT
+make run TEST={{ ip }}_smoke_test        # 2) reset + traffic on every active agent
+make matrix                        # 3) the run was recorded - see the summary
+make waves TEST={{ ip }}_smoke_test      # 4) same run + waves.shm (SimVision)
+```
+
+Step 2 must end with `UVM_ERROR :    0` and `** UVM TEST PASSED **`, and
+prints the configuration signature banner — every simulation self-identifies:
+
+```
+[UVM_GEN_CFG] config_name : {{ config_name }}
+[UVM_GEN_CFG] param_hash  : {{ param_hash }}
+{% for p in params %}
+[UVM_GEN_CFG] param {{ p.name }} = {{ p.value }}
+{% endfor %}
+```
+
+What just happened: the DUT is a generated **stub** (`tb/{{ dut_module }}_stub.sv`,
+selected in `sim/dut.f`) and each agent drives a placeholder single-cycle
+`valid` pulse protocol, so real transactions flow driver → monitor →
+scoreboard/coverage before you have written anything. That is the point:
+the plumbing is proven; only the protocol specifics are yours to fill.
+
+Try the SoC-reuse switch too — same env, all agents passive, still green:
+
+```bash
+make run TEST={{ ip }}_smoke_test PASSIVE=1
+```
+
+## 2. Find your way around
+
+| Where | What | State |
+|---|---|---|
+| `agents/<name>_agent/` | interface, item, driver, monitor, sequencer, cfg, agent, base seq | placeholder protocol, `// TODO` markers |
+| `env/` | `{{ ip }}_env`, `{{ ip }}_env_cfg`, scoreboard, coverage, vsequencer, RAL, VIP wrappers | wired; compare logic = `PLACEHOLDER-CHECK` stubs |
+| `seq_lib/`, `tests/` | virtual sequences, `{{ ip }}_base_test` / `{{ ip }}_smoke_test` | working |
+| `tb/` | `tb_top.sv` + DUT stub | DUT ports unconnected (TODO) |
+| `sim/` | Makefile, filelists, vsif, `scripts/cfg_tool.py` | working |
+| `cfg/` | one YAML per configuration | `{{ input_basename }}` = this one |
+| `verif_matrix.yaml` | append-only record of every run | live from your first `make run` |
+{% if has_copilot %}
+| `docs/`, `dv/`, `.github/` | agent-pack collateral (context, vplan, chkq, status) | see step 5 |
+{% endif %}
+
+## 3. Your first real tasks (in this order)
+
+1. **Real protocol signals** — `agents/*/{{ ip }}_*_if.sv`, then the matching
+   `*_driver.sv` (drive timing) and `*_monitor.sv` (observation). Grep `TODO`.
+2. **Connect the DUT** — wire ports in `tb/tb_top.sv`, then flip `sim/dut.f`
+   from the stub line to the real RTL filelist (pre-filled, commented).
+   `make compile` after each step; on failures read the log named in the
+   error, don't guess.
+3. **Real checks** — `env/{{ ip }}_scoreboard.sv`: every `PLACEHOLDER-CHECK`
+   stub becomes a real compare with a **stable check ID** (e.g.
+   `SCBD_DATA_CMP`) reported via `uvm_error`.
+4. **Real coverage** — `env/{{ ip }}_*_cov.sv`: replace the example bins; tag
+   every bin `// VP-xxx` against `docs/vplan.md`{% if not has_copilot %} (create one){% endif %}.
+5. **RAL** — swap `env/{{ ip }}_reg_block.sv` for your ralgen/IP-XACT model.
+{% if vips %}
+6. **Cadence VIP** — per protocol: uncomment `sim/vip_<protocol>.f` (define +
+   VIP filelist) and fill the `` `ifdef `` TODOs in `env/{{ ip }}_<name>_vip.sv`.
+{% endif %}
+
+Multi-configuration work (`cfg/*.yaml`, `make run CFG=...`, `make regress`,
+sign-off via `verif_matrix.yaml`) is covered in [README.md](README.md).
+{% if has_copilot %}
+
+## 4. Verify like the team does
+
+The repo carries the team's verification methodology:
+
+- `docs/CLAUDE.md` — per-IP context (pre-filled from this generation).
+  **Keep it current**; both humans and agents read it first.
+- `docs/vplan.md` — the traceability contract: every test/covergroup maps to
+  a `VP-{{ IP }}-xxx` item. Draft it from the spec early.
+- `docs/methodology/definition-of-done.md` — what "done" means for any item.
+- `dv/tests/negative/` — the chkq checker-qualification kit (staged;
+  activation checklist in `dv/lists/chkq.list`). Negative tests prove your
+  checkers can actually catch bugs.
+- `dv/cov/exclusion_requests.md`, `dv/lists/`, `dv/status/` — exclusion
+  proposals, regression lists, session/cockpit records.
+
+## 5. Working with the Copilot DV agents
+
+This environment ships the team's GitHub Copilot agent pack (`.github/`):
+seven specialized agents that write tests, stimulus and checkers, close
+coverage, and triage failures — under hard no-shortcut rules (RTL read-only,
+no checker weakening, no claim without a verdict).
+
+Setup (once):
+
+1. Open this repo in VS Code **via Remote-SSH** on the machine where `xrun`
+   runs; sign in to Copilot (agent mode) and `Developer: Reload Window` —
+   the `dv-*` agents appear in the Chat view's agent picker.
+2. Allow-list `make ` and `git diff`/`git log` in
+   `chat.tools.terminal.autoApprove` (this repo has no `dv` wrapper; the
+   golden-command mapping lives in
+   `.github/instructions/uvm-gen-env.instructions.md`).
+3. Work in a git worktree per agent session.
+
+Then type **`/start-here`** in Copilot chat — a guided, read-only onboarding
+session: it tours this environment, runs the smoke test with you, inventories
+the open `TODO`/`PLACEHOLDER-CHECK` work, and hands you ranked first tasks
+with the right slash command for each. Day-to-day entry points:
+
+| You want to... | Command |
+|---|---|
+| Guided first session (new engineer / new env) | `/start-here` |
+| Know where you stand + what to do next | `/status` |
+| Draft the vplan from the spec PDF | `/generate-vplan {{ ip }} <spec.pdf>` |
+| Close a vplan item (test + covergroup) | `/close-vplan-item VP-{{ IP }}-xxx {{ ip }}` |
+| Build reusable stimulus | `/build-stimulus <scenario> {{ ip }}` |
+| Author real checks (from the PLACEHOLDER-CHECK stubs) | `/write-checkers <spec §> {{ ip }}` |
+| Qualify checkers with negative tests | `/qualify-checkers <scope> {{ ip }}` |
+| Debug a failing test | `/triage-failure <test> --seed N {{ ip }}` |
+| Self-review before a MR | `/pre-mr-review` |
+
+The engineer's guide to the agents (rules, budgets, habits, what to do when
+it goes wrong): [`.github/USERGUIDE.md`](.github/USERGUIDE.md).
+
+Note: if `{{ ip }}_verif/` is a **subdirectory** of a larger repo rather than
+the repo root, move `.github/` and `cockpit.ini` to that repo's root — VS
+Code only picks the pack up from there.
+{% else %}
+
+## 4. Optional: the Copilot DV agent pack
+
+This environment was generated without the team's GitHub Copilot agent pack
+(none was found next to uvm-gen, or it was disabled). To add it later, re-run
+the generator with `--copilot-pack <path-to-pack-root>` — existing files are
+never touched; the pack collateral (`.github/`, `docs/`, `dv/`,
+`cockpit.ini`) is simply added. The agent workflow guide then lives in
+`.github/USERGUIDE.md`, and `/start-here` in Copilot chat gives new
+engineers a guided first session.
+{% endif %}

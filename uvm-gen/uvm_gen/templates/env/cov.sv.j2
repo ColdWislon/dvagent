@@ -14,6 +14,8 @@ class {{ ip }}_{{ a.name }}_cov extends uvm_subscriber #({{ ip }}_{{ a.name }}_s
   // TODO: replace this example covergroup with real '{{ a.name }}' protocol
   // coverage. Parameter fields in {{ ip }}_env_cfg (e.g. widths/depths of the
   // active configuration) can shape bins so coverage adapts per config.
+  // Tag every real bin with its vplan item (// VP-xxx) - coverage without
+  // traceability does not count as evidence.
   covergroup {{ a.name }}_cg;
     option.per_instance = 1;
     cp_direction : coverpoint item.write {

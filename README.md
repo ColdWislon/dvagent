@@ -24,10 +24,13 @@ format contract, data-policy approval required for the second vendor).
 | `dv-debug` | same-seed triage, TB fix or RTL-suspect report | `/triage-failure` |
 | `dv-reviewer` | read-only advisory pre-MR shortcut review | `/pre-mr-review` |
 | (briefing) | read-only status: done / in flight / risks / ranked next actions | `/status` |
+| (onboarding) | read-only guided first session for a new engineer: flow detection, env tour, smoke run, ranked first tasks | `/start-here` |
 
 Agents appear in the Chat view agent picker after the files are on the
 branch (reload window if needed). `dv-test-writer` and `dv-coverage-closer`
-hand off to `dv-reviewer` at the end of a session.
+hand off to `dv-reviewer` at the end of a session. Newcomers: `/start-here`
+(and, on `uvm-gen`-generated environments, the generated
+`GETTING_STARTED.md`) is the first-day entry point.
 
 ## Moving-target DUT (RTL in constant evolution)
 

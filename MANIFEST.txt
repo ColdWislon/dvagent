@@ -1,5 +1,5 @@
 copilot-dv-agents — full file manifest
-Generated: 2026-07-05 21:40 UTC
+Generated: 2026-07-10 (updated: /start-here onboarding prompt added)
 
 NOTE: most of this pack lives under .github/ (a HIDDEN folder).
   macOS Finder: Cmd+Shift+.   Windows Explorer: View > Hidden items
@@ -8,9 +8,9 @@ NOTE: most of this pack lives under .github/ (a HIDDEN folder).
 Counts:
   agents  : 7
   skills  : 30
-  prompts : 12
+  prompts : 13
   scripts : 3
-  files   : 106
+  files   : 107
 
 Full tree:
   .github/agents/dv-checker-writer.agent.md
@@ -31,6 +31,7 @@ Full tree:
   .github/prompts/pre-mr-review.prompt.md
   .github/prompts/qualify-checkers.prompt.md
   .github/prompts/review-environment.prompt.md
+  .github/prompts/start-here.prompt.md
   .github/prompts/status.prompt.md
   .github/prompts/triage-failure.prompt.md
   .github/prompts/write-checkers.prompt.md

@@ -41,14 +41,17 @@ class {{ ip }}_scoreboard extends uvm_scoreboard;
     n_observed++;
     {{ a.name }}_q.push_back(t);
     `uvm_info("SB", {"{{ a.name }}: ", t.convert2string()}, UVM_HIGH)
-    // TODO: compare '{{ a.name }}' traffic against a reference model /
-    // expected queue and flag mismatches with `uvm_error.
+    // PLACEHOLDER-CHECK: compare '{{ a.name }}' traffic against a reference
+    // model / expected queue (spec §TODO) and flag mismatches with `uvm_error
+    // under a STABLE check ID (e.g. "SCBD_{{ a.name|upper }}_CMP") so chkq
+    // negative tests can qualify it.
   endfunction
 
 {% endfor %}
   virtual function void check_phase(uvm_phase phase);
     super.check_phase(phase);
-    // TODO: end-of-test checks (unconsumed expected items, ordering, counts).
+    // PLACEHOLDER-CHECK: end-of-test checks (unconsumed expected items,
+    // ordering, counters) - spec §TODO.
     `uvm_info("SB", $sformatf("observed %0d transaction(s) in total", n_observed), UVM_LOW)
   endfunction
 

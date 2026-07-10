@@ -165,10 +165,19 @@ def _normalize_param(name, spec, source: str) -> dict:
 def normalize_config(raw: dict, source: str = "<config>") -> dict:
     """Validate the merged raw config and return the normalized form."""
     warnings: list[str] = []
-    known = {"ip_name", "config_name", "dut", "agents", "vips", "params"}
+    known = {"ip_name", "config_name", "dut", "agents", "vips", "params", "copilot"}
     for key in raw:
         if key not in known:
             warnings.append(f"unknown top-level key '{key}' (ignored)")
+
+    # Copilot DV agent pack staging: unset -> auto (include when the pack is
+    # discoverable), true -> required, false -> off, string -> pack root path.
+    copilot = raw.get("copilot")
+    if copilot is not None and not isinstance(copilot, (bool, str)):
+        raise ConfigError(
+            f"{source}: 'copilot' must be true/false or a pack path "
+            f"(got {type(copilot).__name__})"
+        )
 
     ip = raw.get("ip_name")
     if ip is None:
@@ -276,6 +285,7 @@ def normalize_config(raw: dict, source: str = "<config>") -> dict:
         "agents": agents,
         "vips": vips,
         "params": params,
+        "copilot": copilot,
         "warnings": warnings,
     }
 

@@ -22,9 +22,9 @@ def examples_copy(tmp_path):
 def gen(tmp_path):
     """Run the real CLI; returns the env root."""
 
-    def _gen(cfg_path, out=None, force=False, dry_run=False, expect_rc=0):
+    def _gen(cfg_path, out=None, force=False, dry_run=False, expect_rc=0, extra=()):
         out = Path(out) if out else tmp_path / "out"
-        argv = [str(cfg_path), "-o", str(out)]
+        argv = [str(cfg_path), "-o", str(out), *extra]
         if force:
             argv.append("--force")
         if dry_run:

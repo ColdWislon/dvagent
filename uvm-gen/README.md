@@ -66,7 +66,14 @@ Generated layout:
 All code is `<ip_name>_`-prefixed, packaged, and free of testbench/hierarchy
 references. Protocol specifics are compiling stubs with `// TODO` markers: the
 placeholder protocol (a single-cycle `valid` pulse) gives the smoke test real
-driver→monitor→scoreboard/coverage traffic until you replace it.
+driver→monitor→scoreboard/coverage traffic until you replace it. Scoreboard
+compare stubs carry `// PLACEHOLDER-CHECK:` markers and the coverage stubs
+prompt for `// VP-xxx` vplan tags — the conventions the DV agent pack and its
+cockpit key on (see below).
+
+Every environment also gets **`GETTING_STARTED.md`** — the newcomer
+walkthrough from first compile to first real task (and, when the agent pack
+is staged, to the Copilot agent workflow).
 
 ## Configuration schema
 
@@ -209,6 +216,43 @@ make regress CFG=../cfg/my_ip_small.yaml
 Adapt `REGRESS_CMD` in `sim/Makefile` for your site (e.g.
 `vmanager -server host:port -execcmd "launch ..."`). Runs point `XMLIBDIR`
 into vManager's per-run scratch dir so parallel compiles never collide.
+
+## GitHub Copilot DV agent pack integration
+
+When uvm-gen runs from a checkout of its home repository (or is pointed at a
+pack with `--copilot-pack PATH` / `copilot: <path>` in the YAML), it stages
+the team's Copilot agent pack into the generated environment so the env is
+**agent-ready on day one**:
+
+| Staged | Content |
+|---|---|
+| `.github/` | the full pack: 7 `dv-*` agents, 13 prompts (incl. `/start-here` onboarding), 30 skills, instructions — plus the pack's `USERGUIDE.md` |
+| `.github/instructions/uvm-gen-env.instructions.md` | **rendered bridge**: maps the pack's `dv` golden commands onto this env's make flow (verdicts ↔ exit status + banner + `verif_matrix.yaml`, log triage via the pack's `triage_log.py`) |
+| `docs/CLAUDE.md` | per-IP agent context, **pre-filled from the generated architecture** (agents read it before any work) |
+| `docs/vplan.md` | vplan skeleton in the team format (traceability contract; `/generate-vplan` fills it) |
+| `docs/methodology/definition-of-done.md` | the DoD the reviewer audits against |
+| `dv/tests/negative/` | chkq checker-qualification kit — staged, not compiled (activation checklist in `dv/lists/chkq.list`; commented block ready in `sim/tb.f`) |
+| `dv/cov/exclusion_requests.md`, `dv/lists/`, `dv/status/` | exclusion queue, sanity/chkq regression lists (smoke pre-seeded), cockpit/session sidecar dir |
+| `cockpit.ini`, `external-vplan-kit/` | verif-cockpit config, PDF-vision vplan drafting kit |
+
+Control: default is auto (staged when a pack is discoverable, silently
+skipped otherwise); `copilot: false` in the YAML or `--no-copilot` disables;
+`copilot: true` makes a missing pack an error; a path selects the pack
+explicitly. All copies obey the normal re-run policy (never overwritten;
+`--force` regenerates). If `<ip>_verif/` is a subdirectory of a larger repo,
+move `.github/` + `cockpit.ini` to the repo root — VS Code loads the pack
+from there.
+
+## Getting started (newcomers)
+
+Generated envs are self-onboarding: open `<ip>_verif/GETTING_STARTED.md`.
+It walks a new engineer through prerequisites, the first
+compile/smoke/waves/matrix commands (with the expected output), a map of the
+environment, the ordered list of first real tasks (TODO → real protocol →
+DUT hookup → PLACEHOLDER-CHECKs → coverage → RAL → VIP), and — when the pack
+is staged — the Copilot agent workflow, starting with `/start-here` in
+Copilot chat (a read-only guided first session added to the pack by this
+integration).
 
 ## Instantiating the env inside an SoC env
 

@@ -120,6 +120,10 @@ def build_context(cfg: dict, input_basename: str) -> dict:
         "input_basename": input_basename,
         "params_canonical": canonical_params(cfg["params"]),
         "param_hash": param_hash_hex(cfg["params"]),
+        # True when the Copilot DV agent pack is staged into the env (set by
+        # the CLI after pack discovery); gates pack-aware sections in
+        # GETTING_STARTED.md, README.md and tb.f.
+        "has_copilot": False,
     }
 
 
@@ -173,6 +177,7 @@ def plan(cfg: dict, chain: list[Path], ctx: dict) -> list[Action]:
 
     # --- env root --------------------------------------------------------
     render("README.md", "env_readme.md.j2")
+    render("GETTING_STARTED.md", "getting_started.md.j2")
     render(".gitignore", "gitignore.j2")
     render("verif_matrix.yaml", "verif_matrix.yaml.j2")
 
@@ -247,6 +252,10 @@ def plan(cfg: dict, chain: list[Path], ctx: dict) -> list[Action]:
         Action(relpath="sim/scripts/cfg_tool.py", source=TEMPLATE_ROOT / "sim/cfg_tool.py")
     )
 
+    return actions
+
+
+def check_collisions(actions: list[Action]) -> None:
     seen: dict[str, str] = {}
     for act in actions:
         if act.relpath in seen:
@@ -254,7 +263,6 @@ def plan(cfg: dict, chain: list[Path], ctx: dict) -> list[Action]:
                 f"internal plan collision on '{act.relpath}' - check agent/vip names"
             )
         seen[act.relpath] = act.template or "copy"
-    return actions
 
 
 def execute(
@@ -268,16 +276,21 @@ def execute(
     result = GenResult(env_root=env_root)
     for act in actions:
         dest = env_root / act.relpath
+        if act.source is not None and act.source.resolve() == dest.resolve():
+            # the source already lives at its destination (e.g. regenerating
+            # from the config copy in cfg/) - never rewrite the input
+            result.skipped.append(act.relpath + "  (is the input file)")
+            continue
         if act.content is not None:
-            content = act.content
+            data = act.content.encode("utf-8")
         elif act.source is not None:
-            if act.source.resolve() == dest.resolve():
-                # input config already lives in cfg/ - never rewrite the input
-                result.skipped.append(act.relpath + "  (is the input file)")
-                continue
-            content = act.source.read_text(encoding="utf-8")
+            data = act.source.read_bytes()  # verbatim copy (pack files etc.)
         else:
-            content = env.get_template(act.template).render(**{**ctx, **act.ctx})
+            data = (
+                env.get_template(act.template)
+                .render(**{**ctx, **act.ctx})
+                .encode("utf-8")
+            )
 
         if dest.exists():
             if not force:
@@ -292,7 +305,7 @@ def execute(
 
         if not dry_run:
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(content, encoding="utf-8")
+            dest.write_bytes(data)
     return result
 
 

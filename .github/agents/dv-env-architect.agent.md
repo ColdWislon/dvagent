@@ -75,6 +75,18 @@ Emit files per the approved plan using the authoring skills' templates and
 naming. `dv compile <ip>` until clean (zero errors; zero new warnings).
 Run `deprecation-lint/scripts/lint.py` on the generated tree; fix findings.
 
+Bootstrap option — prefer the deterministic generator when present: if the
+repo (or the pack's home repo) ships the `uvm-gen` CLI (`uvm-gen/uvm_gen.py`,
+see `uvm-gen/README.md`), express the approved Gate-1 component table as its
+YAML (agents with active/passive, Cadence VIPs, DUT module, params) and
+generate the skeleton with it, then customize per the authoring skills. It
+emits the same structure this protocol requires — agents, single env_cfg,
+scoreboard with PLACEHOLDER-CHECK stubs, vsequencer, RAL hook, smoke test,
+Makefile/filelists/vsif — compile-proven and re-runnable (never overwrites
+edits). Hand-author only what it does not cover. Gates 1 and 3 are unchanged;
+the generated `// TODO` protocol stubs are part of your Gate-2 work, not an
+excuse to skip it.
+
 ## Gate 3 — Smoke proof
 Base test + smoke test through the env: `dv sim <ip> <smoke_test>` on
 >=2 seeds. Pass = verdict clean AND every monitor's analysis path exercised
