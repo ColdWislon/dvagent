@@ -23,17 +23,39 @@ stack. Each skill is a self-contained folder that a skills-compatible agent
 | `uvm-ral` | register model + adapter + predictor |
 | `uvm-test` | test class (config + launch vseq under objection) |
 
+### Conventions & reuse — the shape the code must have
+| Skill | Role |
+|---|---|
+| `uvm-coding-standard` | team SV/UVM coding rules (authoritative; the three law skills below are its detail layer) |
+| `naming-conventions` | house naming ruleset (source of truth) |
+| `phasing-check` | phase + objection ruleset (source of truth) |
+| `deprecation-lint` | deprecated API + anti-pattern ruleset (source of truth) + `scripts/lint.py` |
+| `vertical-reuse` | block→subsystem reuse rules for env/agent structure, config, sequences, RAL |
+
+### Protocol knowledge — feed stimulus/checker/coverage work
+| Skill | Role |
+|---|---|
+| `amba-axi` | AXI4/AXI3 rules: handshake/ordering/burst/exclusive traps, check candidates, coverage dimensions, chkq injections |
+| `amba-ahb` | AHB-Lite/AHB5 rules: pipeline/HTRANS/burst/wait-state traps, check candidates, coverage dimensions, chkq injections |
+| `amba-apb` | APB3/APB4 rules: setup/access phase, PREADY/PSLVERR, PSTRB traps, check candidates, coverage dimensions, chkq injections |
+
+### Flow & methodology references
+| Skill | Role |
+|---|---|
+| `dv-wrapper` | live flow reference: the uvm-gen make flow (no-wrapper default, confirmed facts) + optional site `dv` wrapper specifics |
+| `xcelium-flow` | Cadence Xcelium/IMC specifics: run/debug usage, compile/elab error patterns |
+| `vplan-common-topics` | cross-cutting topics every vplan must resolve (the completeness matrix) |
+| `coverage-closure` | hole classification taxonomy, exclusion policy, closure evidence rules |
+| `debug-playbook` | Xcelium/UVM triage tactics beyond dv-debug's decision tree |
+
 ### Visibility
 | Skill | Role |
 |---|---|
 | `verif-cockpit` | local static-HTML cockpit per IP (pending human, scorecard, vplan, clusters, sessions); `scripts/cockpit.py` + `cockpit.ini` tool abstraction |
 
-### Review / enforcement — sign off an environment
+### Review / run-and-debug — sign off an environment
 | Skill | Role |
 |---|---|
-| `naming-conventions` | house naming ruleset (source of truth) |
-| `phasing-check` | phase + objection ruleset (source of truth) |
-| `deprecation-lint` | deprecated API + anti-pattern ruleset (source of truth) + `scripts/lint.py` |
 | `log-triage` | parse/classify Xcelium+UVM logs; first causal error + normalized failure signature; `scripts/triage_log.py` (deterministic) |
 | `regression-triage` | cluster a red regression by signature, rank, dispatch plan (consumes `log-triage`) |
 | `debug-strategy` | hypothesis-driven debug of one failing sim; per-failure-mode playbooks (mismatch/hang/X-prop/SVA/randomize/RAL) |
@@ -96,32 +118,35 @@ through the environment's `sim/Makefile` (`make compile`, `make run
 TEST=... SEED=...`) or the team `dv` wrapper where one exists — never raw
 `xrun`/`imc`/vManager; vsif files live under `sim/`, one per configuration.
 
-## Integration with the copilot-dv-agents pack
+## Integration with the DV agent pack
 
-This skill pack is aligned with (and subordinate to, where they overlap) the
-team's `copilot-dv-agents` repo:
+The skills and the `dv-*` agents ship together in this same `.github/`
+directory — one pack. Where they overlap, the contract wins:
 
 - **Law of the land**: `.github/copilot-instructions.md` (golden-verb table
   — uvm-gen make flow, optional dv wrapper —,
-  commands, never-weaken-checkers, evidence contract, moving-DUT rules) and the
-  team `uvm-coding-standard` skill override anything here on conflict. The
-  three law skills in this pack (`naming-conventions`, `phasing-check`,
+  commands, never-weaken-checkers, evidence contract, moving-DUT rules) and
+  the `uvm-coding-standard` skill override anything here on conflict. The
+  three law skills (`naming-conventions`, `phasing-check`,
   `deprecation-lint`) are the DETAIL layer under `uvm-coding-standard`.
-- **Role split with the six agents**: the agents deliberately do NOT create or
-  restructure environments, agents, scoreboards, or RAL models (dv-test-writer
-  boundary; dv-checker-writer is additive-only). The 12 authoring skills here
-  cover exactly that missing role -- the ENVIRONMENT ARCHITECT: use them in
-  plain chat / by the human architect, or as the basis for a future
-  `dv-env-architect` agent. They are not for dv-test-writer sessions.
+- **Role split with the seven agents**: the six day-to-day agents
+  deliberately do NOT create or restructure environments, agents,
+  scoreboards, or RAL models (dv-test-writer boundary; dv-checker-writer is
+  additive-only). That role — the ENVIRONMENT ARCHITECT — belongs to the
+  `dv-env-architect` agent (`/generate-environment`): it bootstraps the
+  skeleton from uvm-gen and customizes via the 12 authoring skills here.
+  The same skills serve a human architect in plain chat. They are not for
+  dv-test-writer sessions.
 - **Skill complements** (no duplication): `debug-strategy/references/playbooks`
-  extends the team `debug-playbook` (X-prop, randomize, RAL, SVA-vacuity
+  extends `debug-playbook` (X-prop, randomize, RAL, SVA-vacuity
   recipes); `uvm-coverage` (authoring) complements `coverage-closure`
   (closure policy); `verif-env-review` (environment audit) complements the
   `dv-reviewer` agent (pre-MR diff review) and the per-item
   `definition-of-done.md`.
 - **Scripts are CI-side**: `triage_log.py` and `lint.py` run in Jenkins (or
-  behind `dv log first-error` / `dv lint`); agents access tools and logs only
-  through the `dv` wrapper.
+  behind `dv log first-error` / `dv lint` where a wrapper exists); agents
+  access tools and logs only through the generated make flow (or the site
+  `dv` wrapper).
 - **Conventions adopted from the team pack**: `// VP-xxx` vplan references,
   stable unique check IDs (`SCBD_*`) as chkq-keyed API, nested config objects
   set once at test level, objections in tests and virtual sequences only,

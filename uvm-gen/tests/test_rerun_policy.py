@@ -49,6 +49,32 @@ def test_adding_agent_creates_only_new_files(examples_copy, gen, capsys):
     assert "my_ip_env_cfg.sv" in out
 
 
+def test_adding_vip_creates_only_new_files(examples_copy, gen, capsys):
+    env = gen(examples_copy / "my_ip.yaml")
+    before = tree_hashes(env)
+
+    cfg = examples_copy / "my_ip.yaml"
+    cfg.write_text(cfg.read_text().replace(
+        "vips:\n", "vips:\n  - protocol: ahb\n    name: mem0\n"
+    ))
+    gen(cfg)
+    out = capsys.readouterr().out
+
+    after = tree_hashes(env)
+    new_files = sorted(set(after) - set(before))
+    assert new_files == [
+        "env/my_ip_mem0_vip.sv",
+        "sim/vip_ahb.f",
+    ]
+    # every pre-existing file untouched
+    assert all(after[p] == h for p, h in before.items())
+    # and the user is told what to wire up by hand, incl. the new protocol's
+    # filelist (FILELISTS in the existing Makefile is never rewritten)
+    assert "wire them in by hand" in out
+    assert "vsequencer.mem0_sqr = mem0_vip.sqr" in out
+    assert "-f vip_ahb.f" in out
+
+
 def test_second_config_adds_only_cfg_copy_and_vsif(examples_copy, gen):
     env = gen(examples_copy / "my_ip.yaml")
     before = tree_hashes(env)

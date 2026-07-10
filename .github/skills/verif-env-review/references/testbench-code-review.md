@@ -31,7 +31,7 @@ they roll up as this axis.
 ## Finding schema (rolls up to the testbench_code axis)
 ```json
 { "axis": "testbench_code", "rule_id": "tlm.dangling_ap", "severity": "error",
-  "file": "env/foo_env.svh", "line": 42,
-  "message": "m_slave_agent.ap not connected",
+  "file": "env/foo_env.sv", "line": 42,
+  "message": "slave_agent.ap not connected",
   "fix": "connect ap to a scoreboard/coverage export in connect_phase" }
 ```

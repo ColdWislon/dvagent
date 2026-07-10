@@ -20,7 +20,7 @@ a virtual interface. It contains no checking and no coverage.
 4. Reset semantics (active level, mid-transaction abort behaviour).
 
 ## Procedure
-1. Create `<proto>_driver.svh` from `assets/templates/driver.svh.tmpl`.
+1. Create `<proto>_driver.sv` (`.sv` in this infra) from `assets/templates/driver.svh.tmpl`.
 2. Get the virtual interface from the config object in `build_phase` (fatal if
    absent). Never `config_db::get` the raw interface if it is carried in config.
 3. In `run_phase`, run the drive loop under a reset guard: `get_next_item(req)`

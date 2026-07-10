@@ -19,7 +19,7 @@ when active. Active/passive is decided by config, never hard-coded.
 3. Default active/passive.
 
 ## Procedure
-1. Create `<proto>_agent.svh` from `assets/templates/agent.svh.tmpl`.
+1. Create `<proto>_agent.sv` (`.sv` in this infra) from `assets/templates/agent.svh.tmpl`.
 2. In `build_phase`: get the config object, always build the monitor; build the
    sequencer and driver only when `get_is_active() == UVM_ACTIVE`.
 3. In `connect_phase`: when active, connect

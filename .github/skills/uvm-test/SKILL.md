@@ -28,7 +28,7 @@ Gather these from the conversation, or ask. Do not invent them.
 1. **Feature / scenario name** -> drives the class name `<feat>_test`.
 2. **Base test** to extend (default: the project base test, e.g. `<proj>_base_test`).
 3. **Virtual sequence** to launch (an existing `<feat>_vseq`, or flag that it
-   must be created first -- that is the `uvm-vseq` skill, not this one).
+   must be created first -- that is the `uvm-vsequence` skill, not this one).
 4. **Knobs**: the `config_db` values or factory overrides this test needs
    (error injection, mode selects, agent active/passive, alternate sequence).
 5. **vPlan feature ID** for the traceability tag.
@@ -38,8 +38,8 @@ sequence to run is not useful -- create the vseq first.
 
 ## Procedure
 
-1. Create `<feat>_test.svh` under `tb/tests/` from
-   `assets/templates/test.svh.tmpl`, substituting the names above.
+1. Create `<feat>_test.sv` under `tests/` (next to `<proj>_base_test.sv`)
+   from `assets/templates/test.svh.tmpl`, substituting the names above.
 2. Fill `build_phase`: call `super.build_phase(phase)` **first**, then only the
    `config_db::set` calls and the `type_id::set_type_override` /
    `set_inst_override` this test requires. Do **not** construct the env here.
@@ -49,8 +49,9 @@ sequence to run is not useful -- create the vseq first.
    objection. Nothing else.
 4. Add a `// VP-xxx` tag on the class so the vPlan / coverage
    tooling can resolve the link.
-5. Register the file: add it to the compile filelist (`tb/compile.f` or the
-   tests `.f`) and add a test entry to the vsif so it appears in vManager.
+5. Register the file: `` `include `` it from the test package
+   (`tests/<proj>_test_pkg.sv`) and add a test entry to the vsif under
+   `sim/` so it appears in vManager.
 6. Verify against the **Definition of Done** below before declaring done.
 
 The house rules, the deprecations to avoid, and the exact config_db / override

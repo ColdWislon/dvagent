@@ -103,7 +103,8 @@ The repo carries the team's verification methodology:
   **Keep it current**; both humans and agents read it first.
 - `docs/vplan.md` — the traceability contract: every test/covergroup maps to
   a `VP-{{ IP }}-xxx` item. Draft it from the spec early.
-- `docs/methodology/definition-of-done.md` — what "done" means for any item.
+- `docs/methodology/definition-of-done.md`{% if copilot_in_repo %} (at the workspace root){% endif %} —
+  what "done" means for any item.
 - `dv/tests/negative/` — the chkq checker-qualification kit (staged;
   activation checklist in `dv/lists/chkq.list`). Negative tests prove your
   checkers can actually catch bugs.

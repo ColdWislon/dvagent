@@ -19,7 +19,7 @@ convenience printers. No components, no logic, no interface access.
 3. Legality constraints (encodings, alignment, ranges, inter-field relations).
 
 ## Procedure
-1. Create `<proto>_item.svh` from `assets/templates/seq_item.svh.tmpl`.
+1. Create `<proto>_item.sv` (`.sv` in this infra) from `assets/templates/seq_item.svh.tmpl`.
 2. Register with `` `uvm_object_utils `` (or `` `uvm_object_utils_begin/end `` with
    `` `uvm_field_* `` if using field automation).
 3. Declare `rand` fields; add named `constraint` blocks for legality.

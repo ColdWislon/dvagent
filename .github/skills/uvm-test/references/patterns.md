@@ -60,7 +60,7 @@ endclass
 ## 2. `config_db` conventions
 
 - Scope keys to the smallest subtree that needs the value:
-  `uvm_config_db#(int)::set(this, "m_env.m_agentX", "is_active", UVM_ACTIVE);`
+  `uvm_config_db#(int)::set(this, "env.<name>_agent", "is_active", UVM_ACTIVE);`
   Prefer that over a global `"*"` scope, which leaks into unrelated components.
 - Set in `build_phase`, after `super.build_phase`. Do not `get` in the test what
   the base already provides through the config object.

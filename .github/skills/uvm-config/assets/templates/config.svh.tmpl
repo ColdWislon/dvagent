@@ -21,6 +21,6 @@ endclass : <proto>_agent_cfg
 // ---- top-level wiring (in the test/base or tb top), for reference ----
 // <proto>_agent_cfg cfg = <proto>_agent_cfg::type_id::create("cfg");
 // cfg.vif = tb_top.<proto>_if_inst;
-// uvm_config_db#(<proto>_agent_cfg)::set(this, "m_env.m_master_agent", "cfg", cfg);
+// uvm_config_db#(<proto>_agent_cfg)::set(this, "env.<name>_agent", "cfg", cfg);
 
 `endif // <PROTO>_AGENT_CFG_SVH

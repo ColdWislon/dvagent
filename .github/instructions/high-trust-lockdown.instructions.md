@@ -1,7 +1,7 @@
 ---
 name: 'High-trust zone lockdown'
 description: 'RTL, SVA, scoreboards, checkers, and coverage waivers are not agent-editable'
-applyTo: '**/rtl/**,**/sva/**,**/*scoreboard*,**/*checker*,**/*waiver*,**/*refinement*,**/exclusion*'
+applyTo: '**/rtl/**,**/sva/**,**/*scoreboard*,**/*checker*,**/*waiver*,**/*refinement*,**/*.vRefine'
 ---
 
 # High-trust zone — do not modify
@@ -23,8 +23,10 @@ Files matching this scope are outside agent editing authority:
   evidence table proving every new check fires. The resulting MR still
   requires human sign-off — the protocol earns the right to propose, not
   to merge.
-- Coverage waivers/refinements/exclusions are applied by humans only.
-  Write proposals to `dv/cov/exclusion_requests.md` with justification.
+- APPLIED coverage waivers/refinements/exclusions (e.g. `.vRefine` files)
+  are human-only. The proposal queue `dv/cov/exclusion_requests.md` is the
+  one deliberate exception: agents append justified proposals there; a
+  human applies them.
 
 If a task cannot proceed without changing one of these files, stop, explain
 precisely which file and which change is needed and why, and hand the

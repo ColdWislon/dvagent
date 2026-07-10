@@ -16,8 +16,13 @@ guessing.]
 
 - Scoreboard: `{{ ip }}_scoreboard` (compare logic: PLACEHOLDER-CHECK stubs, reference model: [none yet])
 - Coverage: {% for a in agents %}`{{ ip }}_{{ a.name }}_cov`{% if not loop.last %}, {% endif %}{% endfor %}{% if not agents %}—{% endif %} (example bins — refine + tag `// VP-xxx`)
-- Virtual sequencer: `{{ ip }}_vsequencer` — handles: [{% for a in agents %}{{ a.name }}_sqr{% if not loop.last %}, {% endif %}{% endfor %}{% for v in vips %}, {{ v.name }}_sqr{% endfor %}] (null when passive)
+{% set sqr_names = (agents | map(attribute='name') | list) + (vips | map(attribute='name') | list) %}
+- Virtual sequencer: `{{ ip }}_vsequencer` — handles: [{% for n in sqr_names %}{{ n }}_sqr{% if not loop.last %}, {% endif %}{% endfor %}] (null when passive)
+{% if first_agent %}
 - RAL: yes — `{{ ip }}_reg_block` stub + `{{ ip }}_reg_adapter` (replace with ralgen/IP-XACT model)
+{% else %}
+- RAL: `{{ ip }}_reg_block` stub only (no custom agent carries register traffic — wire an adapter to the owning VIP once integrated; replace the stub with the ralgen/IP-XACT model)
+{% endif %}
 - Top harness: `tb_top` in `tb/tb_top.sv` (DUT `{{ dut_module }}`, stubbed via `sim/dut.f`)
 - Base test: `{{ ip }}_base_test`; smoke test: `{{ ip }}_smoke_test` (passes on the fresh env)
 - chkq base: `{{ ip }}_chkq_base_test` (reparented chkq_base_test): not yet — kit staged in `dv/tests/negative/`
@@ -51,8 +56,13 @@ dv/lists/chkq.list once real checks land, e.g.:
 - Compile: `make -C sim compile`   Smoke: `make -C sim run TEST={{ ip }}_smoke_test`
 - Configuration select: `CFG=../cfg/<config>.yaml`   All-passive: `PASSIVE=1`
 - Sanity list: `dv/lists/sanity.list`   chkq list: `dv/lists/chkq.list`
+{% if copilot_in_repo %}
+- Full mapping of the `dv` golden commands onto this flow: the golden-verb
+  table in `.github/copilot-instructions.md` (workspace root)
+{% else %}
 - Full mapping of the `dv` golden commands onto this flow:
   `.github/instructions/uvm-gen-env.instructions.md`
+{% endif %}
 - Params of this configuration ({{ config_name }}): {% for p in params %}`{{ p.name }}={{ p.value }}`{% if not loop.last %}, {% endif %}{% endfor %}{% if not params %}—{% endif %}
 
 ## Ownership

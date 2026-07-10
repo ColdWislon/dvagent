@@ -124,9 +124,11 @@ ones. Consequences:
 * Editing generated files is always safe; re-running `uvm_gen.py` changes
   nothing on an untouched env.
 * Adding an agent/VIP to the YAML and re-running creates **just the new
-  agent's files** (plus any missing collateral). Existing env files are left
-  alone; the tool prints the exact hand-wiring checklist (env_cfg, env, pkg,
-  scoreboard, vsequencer, smoke vseq, base test, tb_top, tb.f).
+  instance's files** (plus any missing collateral). Existing env files are
+  left alone; the tool prints the exact hand-wiring checklist — for agents:
+  env_cfg, env, pkg, scoreboard, vsequencer, smoke vseq, base test, tb_top,
+  tb.f; for VIPs: env_cfg, pkg, env + vsequencer handle, and (for a new
+  protocol) the `-f vip_<proto>.f` FILELISTS line in sim/Makefile.
 * Running with a new configuration YAML creates just that configuration's
   `cfg/` copy and `sim/<ip>_<config_name>.vsif`.
 * `--force` regenerates everything — **except `verif_matrix.yaml`**, which is
@@ -136,7 +138,8 @@ ones. Consequences:
 
 One `-f` per domain, never merged — design first, then DV
 (`FILELISTS = -f dut.f -f tb.f [-f vip_<proto>.f ...]`; append site extras
-with `make run FILELISTS+='-f soc_glue.f'`):
+with `make run EXTRA_FILELISTS='-f soc_glue.f'` — a command-line
+`FILELISTS+=` would replace the base lists, not append):
 
 | Target | Purpose |
 |---|---|

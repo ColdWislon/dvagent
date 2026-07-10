@@ -1,9 +1,10 @@
 // <feat>_vseq -- orchestrates sub-sequences across agents via the vsequencer
-// Substitute <feat>/<FEAT> and the vsequencer type + sub-sequencer handles.
+// Substitute <feat>/<FEAT> and the vsequencer type + sub-sequencer handles
+// (convention: p_sequencer.<name>_sqr, null when that agent is passive).
 `ifndef <FEAT>_VSEQ_SVH
 `define <FEAT>_VSEQ_SVH
 
-class <feat>_vseq extends <proj>_vseq_base;   // base declares nothing pin-level
+class <feat>_vseq extends <proj>_base_vseq;   // base declares nothing pin-level
   `uvm_object_utils(<feat>_vseq)
   `uvm_declare_p_sequencer(<proj>_vsequencer)
 
@@ -17,8 +18,8 @@ class <feat>_vseq extends <proj>_vseq_base;   // base declares nothing pin-level
     a_seq = <feat>_seq::type_id::create("a_seq");
     b_seq = <feat>_seq::type_id::create("b_seq");
     fork
-      a_seq.start(p_sequencer.m_master_seqr);
-      b_seq.start(p_sequencer.m_slave_seqr);
+      if (p_sequencer.<nameA>_sqr != null) a_seq.start(p_sequencer.<nameA>_sqr, this);
+      if (p_sequencer.<nameB>_sqr != null) b_seq.start(p_sequencer.<nameB>_sqr, this);
     join
   endtask
 

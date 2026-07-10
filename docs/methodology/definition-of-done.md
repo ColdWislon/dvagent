@@ -3,6 +3,11 @@
 [TEMPLATE — replace with the team's authoritative DoD from the block
 verification standard. The dv-reviewer audits MRs against this list.]
 
+**Vplan-level prerequisite (once per block, before coverage closure)**: the
+cross-cutting completeness matrix is fully resolved — every common topic
+mapped to items or a justified N/A — before the block enters
+coverage-closure phase.
+
 A vplan item / MR is DONE when ALL hold:
 
 1. **Traceability**: MR references the VP id; the item's requirement text
@@ -10,9 +15,6 @@ A vplan item / MR is DONE when ALL hold:
    silent]` are closable only after the intent is confirmed in writing
    (spec update, design note, or recorded designer answer).
 
-0. **(Vplan-level, once per block)**: the cross-cutting completeness
-   matrix is fully resolved — every common topic mapped to items or a
-   justified N/A — before the block enters coverage-closure phase.
 2. **Compile & lint**: compile clean (`make compile`; wrapper: `dv
    compile`); deprecation-lint `lint.py` clean on the touched TB paths
    (wrapper: `dv lint --diff`).

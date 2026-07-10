@@ -3,8 +3,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Cockpit output
-cockpit.html
+# Cockpit output (cockpit.html, per-IP cockpit_<ip>.html, index)
+cockpit*.html
 index.html
 
 # Generated environments created in this workspace manage their own

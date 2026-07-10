@@ -26,7 +26,7 @@ components.
 3. Virtual interface type carried by the (agent) config.
 
 ## Procedure
-1. Create `<x>_cfg.svh` from `assets/templates/config.svh.tmpl`.
+1. Create `<x>_cfg.sv` (`.sv` in this infra) from `assets/templates/config.svh.tmpl`.
 2. Extend `uvm_object`, register with `` `uvm_object_utils ``, expose knobs (some
    `rand`) and the `virtual <proto>_if vif` handle.
 3. Nest: the env config holds the agent configs; the test builds the env

@@ -5,12 +5,13 @@ description: Generate the local DV cockpit — a static HTML page giving one IP'
 
 # Verification cockpit (local, static)
 
-One command, one self-contained HTML page per IP:
+One command, one self-contained HTML page per IP (the argument is the env
+directory — `<ip>_verif` in a uvm-gen workspace, `.` in a standalone env):
 
-    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>   # uvm-gen default
+    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>_verif   # uvm-gen default
     dv cockpit <ip>                # wrapper subcommand, where wired
     # backend (works today, no wrapper change needed):
-    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>
+    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>_verif
     python3 .github/skills/verif-cockpit/scripts/cockpit.py --all   # + index.html
 
 Open `cockpit.html` in a browser (file:// works, farm/SSH friendly). Zero

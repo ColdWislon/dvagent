@@ -28,7 +28,7 @@ protocol.
 | regression | `make regress` (vManager launches `sim/{{ ip }}_<config>.vsif`) |
 | `dv log first-error <log>` | `python3 .github/skills/log-triage/scripts/triage_log.py sim/logs/<log>` |
 | `dv cov report/delta` | not wired yet — say so instead of improvising IMC calls |
-| `dv cockpit {{ ip }}` | `python3 .github/skills/verif-cockpit/scripts/cockpit.py` (config: `cockpit.ini`) |
+| `dv cockpit {{ ip }}` | `python3 .github/skills/verif-cockpit/scripts/cockpit.py .` (this env root is the IP dir; config: `cockpit.ini`) |
 
 Verdict contract equivalents (rule 4 still applies verbatim):
 * `make run` exits non-zero on failure; `sim/scripts/cfg_tool.py` parses the

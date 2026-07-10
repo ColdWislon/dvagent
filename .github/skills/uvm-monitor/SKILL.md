@@ -20,7 +20,7 @@ publishes them on an analysis port. It never drives and never checks.
 4. Sampling points (clock edge, valid/ready handshake, transaction boundaries).
 
 ## Procedure
-1. Create `<proto>_monitor.svh` from `assets/templates/monitor.svh.tmpl`.
+1. Create `<proto>_monitor.sv` (`.sv` in this infra) from `assets/templates/monitor.svh.tmpl`.
 2. Declare `uvm_analysis_port#(<proto>_item) ap` and construct it.
 3. Get the virtual interface from the config object in `build_phase`.
 4. In `run_phase`, sample under a reset guard, reconstruct each transaction, and

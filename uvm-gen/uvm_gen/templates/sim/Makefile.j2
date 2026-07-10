@@ -69,12 +69,15 @@ export CDN_VIP_ROOT
 # -----------------------------------------------------------------------------
 # Filelists: one .f per domain, each passed to xrun as its own -f (never
 # merged). Design first, then DV. Append extra domains (memory models, SoC
-# glue, ...) to FILELISTS without touching the rules, e.g.:
-#   make run FILELISTS+='-f soc_glue.f'
+# glue, ...) via EXTRA_FILELISTS without touching the rules, e.g.:
+#   make run EXTRA_FILELISTS='-f soc_glue.f'
+# (A command-line FILELISTS+=... would REPLACE the base lists - make's
+# command-line origin beats the ?= default - hence the dedicated variable.)
 # -----------------------------------------------------------------------------
 DUT_F ?= dut.f
 TB_F  ?= tb.f
-FILELISTS ?= -f $(DUT_F) -f $(TB_F){% for proto in vip_protocols %} -f vip_{{ proto }}.f{% endfor %}
+EXTRA_FILELISTS ?=
+FILELISTS ?= -f $(DUT_F) -f $(TB_F){% for proto in vip_protocols %} -f vip_{{ proto }}.f{% endfor %} $(EXTRA_FILELISTS)
 
 # -----------------------------------------------------------------------------
 # xrun (single step: compile + elaborate + simulate)

@@ -19,7 +19,7 @@ does not own objections (the test does) and does not touch pins.
 3. Scenario: field patterns, ordering, count, and any randomization knobs.
 
 ## Procedure
-1. Create `<feat>_seq.svh` from `assets/templates/sequence.svh.tmpl`.
+1. Create `<feat>_seq.sv` (`.sv` in this infra) from `assets/templates/sequence.svh.tmpl`.
 2. Register with `` `uvm_object_utils ``; parameterize on the item type.
 3. In `body()`, generate items with `create` + `start_item` +
    `randomize() with {...}` + `finish_item`. Expose knobs as `rand` class

@@ -5,11 +5,13 @@ read; the rest you learn by doing.
 
 ## What this is, in 30 seconds
 
-Six specialized Copilot agents that work inside our UVM environments —
+Seven specialized Copilot agents built around our UVM environments —
 uvm-gen-generated testbenches (`<ip>_verif/`) driven through their
-`sim/Makefile`: they write tests, stimulus, and checkers, close coverage,
-and triage failures — always closing the loop with real compile/sim
-verdicts, never by claiming success. You drive them from VS Code chat; you
+`sim/Makefile`: one (`dv-env-architect`) bootstraps NEW environments from
+the uvm-gen generator; the other six work inside existing ones — they
+write tests, stimulus, and checkers, close coverage, and triage failures —
+always closing the loop with real compile/sim verdicts, never by claiming
+success. You drive them from VS Code chat; you
 review and merge everything. The no-shortcut rules (RTL read-only, no
 checker weakening, no exclusions) are enforced by the CI gate on every
 MR — agent-authored or not.
@@ -51,6 +53,7 @@ in this guide otherwise stays the same.
 | You want to... | Use | Entry point |
 |---|---|---|
 | First day on the repo / guided onboarding | (read-only guide) | `/start-here` |
+| Start a NEW IP environment (YAML → uvm-gen skeleton) | dv-env-architect | `/generate-environment <ip>` |
 | Close a vplan item (test + covergroup) | dv-test-writer | `/close-vplan-item VP-xxx <ip>` |
 | Build reusable sequences / constraints | dv-stim-writer | `/build-stimulus <scenario> <ip>` |
 | Add new checks (scoreboard/model/SVA) | dv-checker-writer | `/write-checkers <spec §> <ip>` |
@@ -115,7 +118,8 @@ risks, and ranked next actions as ready-to-run commands.
 ## When it goes wrong
 
 - **Thrashing** (repeated similar failed attempts): stop the session.
-  Agents have budgets (6 sims for debug, 10–15 elsewhere) and must
+  Agents have budgets (6 sims for debug, 8 for env bring-up, 10–15
+  elsewhere) and must
   summarize-and-stop at budget — if one circumvents that, that's
   feedback we want.
 - **Unparseable or surprising flow output** (no UVM summary, no matrix

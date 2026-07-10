@@ -24,8 +24,9 @@ Usage:
   python3 cockpit.py <ip_path> [--out cockpit.html] [--root REPO] [--config INI]
   python3 cockpit.py --all [--root REPO]        # per-IP pages + index.html
 
-Intended invocation for engineers: `dv cockpit <ip>` (wrapper wiring -- see the
-dv-wrapper skill). This is a HUMAN tool: agents have no reason to run it.
+Engineers run it directly (`python3 cockpit.py <ip>` or `--all`); sites that
+layer a `dv` wrapper may expose it as `dv cockpit <ip>` (see the dv-wrapper
+skill). This is a HUMAN tool: agents have no reason to run it.
 """
 import argparse
 import configparser
@@ -51,10 +52,11 @@ DEFAULTS = {
         "session_glob":    "session_*.json",
         "exclusions_md":   "dv/cov/exclusion_requests.md",
         "vplan_md":        "docs/vplan.md",
-        "scan_dirs":       "dv",                    # comma-separated, relative to ip
+        "scan_dirs":       "dv,agents,env,seq_lib,tests,tb",  # comma-separated, relative to ip
         "scan_exts":       ".sv,.svh",
         "placeholder_tag": "PLACEHOLDER-CHECK",
-        "vplan_tag":       r"VP-\d+",
+        # Matches both bare ids (VP-101) and the uvm-gen scheme (VP-<IP>-101).
+        "vplan_tag":       r"VP-(?:[A-Z0-9_]+-)?\d+",
         "ip_glob":         "*/dv",                  # --all discovery: dirs whose parent is an IP
     },
     "display": {
@@ -411,6 +413,9 @@ def main():
     if args.all:
         ips = sorted({os.path.dirname(p) for p in
                       glob.glob(os.path.join(args.root, cfg.get("tool", "ip_glob")))})
+        if not ips and os.path.isdir(os.path.join(args.root, cfg.get("tool", "status_dir"))):
+            # standalone env: the root itself is the (single) IP
+            ips = [args.root]
         if not ips:
             sys.exit("no IPs found with ip_glob=%r under %s" % (cfg.get("tool", "ip_glob"), args.root))
         items = []

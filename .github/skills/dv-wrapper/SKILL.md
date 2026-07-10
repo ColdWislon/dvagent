@@ -123,7 +123,8 @@ is absent.
 
 ## `dv cockpit` (proposed subcommand)
 - Intended: `dv cockpit <ip> [--all]` wraps
-  `python3 .github/skills/verif-cockpit/scripts/cockpit.py` (config:
+  `python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>_verif`
+  (the arg is the env directory; `--all` for every env; config:
   `cockpit.ini` at repo root). Human-facing; produces `cockpit.html`, no JSON
   verdict, exit 0 on generation.
 - **UNKNOWN — ASK**: is the subcommand wired in this team's wrapper yet? If

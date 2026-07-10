@@ -20,7 +20,7 @@ pins and never generates items directly.
 3. Sub-sequences to run and their ordering / concurrency.
 
 ## Procedure
-1. Create `<feat>_vseq.svh` from `assets/templates/vsequence.svh.tmpl`.
+1. Create `<feat>_vseq.sv` (`.sv` in this infra) from `assets/templates/vsequence.svh.tmpl`.
 2. Declare the typed virtual sequencer with `` `uvm_declare_p_sequencer ``.
 3. In `body()`, create each sub-sequence via the factory and `start` it on the
    matching `p_sequencer.<name>_sqr` — guard for null first (passive agents

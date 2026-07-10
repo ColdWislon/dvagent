@@ -19,7 +19,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from . import __version__
-from .config import ROLES, canonical_params, param_hash_hex
+from .config import ROLES, param_hash_hex
 
 TEMPLATE_ROOT = Path(__file__).parent / "templates"
 
@@ -118,7 +118,6 @@ def build_context(cfg: dict, input_basename: str) -> dict:
         "defparam_params": [p for p in params if p["style"] == "defparam"],
         "first_agent": agents[0]["name"] if agents else None,
         "input_basename": input_basename,
-        "params_canonical": canonical_params(cfg["params"]),
         "param_hash": param_hash_hex(cfg["params"]),
         # Set by the CLI after pack discovery: has_copilot gates pack-aware
         # sections in GETTING_STARTED.md, README.md and tb.f; copilot_in_repo
@@ -312,8 +311,11 @@ def execute(
 
 
 def new_agent_hints(result: GenResult, ctx: dict) -> list[str]:
-    """When agent files were created into an existing env, tell the user what
-    to wire up by hand (existing files are never modified)."""
+    """When agent/VIP files were created into an existing env, tell the user
+    what to wire up by hand (existing files are never modified)."""
+    if not result.skipped:
+        return []
+    ip = ctx["ip"]
     new_agents = sorted(
         {
             m.group(1)
@@ -321,11 +323,19 @@ def new_agent_hints(result: GenResult, ctx: dict) -> list[str]:
             if (m := re.match(r"agents/(\w+)_agent/", p))
         }
     )
-    if not new_agents or not result.skipped:
+    new_vips = [
+        v
+        for v in ctx["vips"]
+        if f"env/{ip}_{v['name']}_vip.sv" in result.created
+    ]
+    if not new_agents and not new_vips:
         return []
-    ip = ctx["ip"]
+    what = ", ".join(
+        (["agent(s) " + ", ".join(new_agents)] if new_agents else [])
+        + (["vip(s) " + ", ".join(v["name"] for v in new_vips)] if new_vips else [])
+    )
     hints = [
-        f"new agent(s) {', '.join(new_agents)} were generated, but existing env "
+        f"new {what} were generated, but existing env "
         "files are never modified - wire them in by hand:",
     ]
     for n in new_agents:
@@ -340,4 +350,16 @@ def new_agent_hints(result: GenResult, ctx: dict) -> list[str]:
             f"  [{n}] tb/tb_top.sv            : instantiate {ip}_{n}_if, publish '{n}_vif'",
             f"  [{n}] sim/tb.f                : add +incdir+ and the interface/package lines",
         ]
+    for v in new_vips:
+        n, proto = v["name"], v["protocol"]
+        hints += [
+            f"  [{n}] env/{ip}_env_cfg.sv     : add '{ip}_{n}_vip_cfg {n}_cfg;' (+ create in new(), set_all_passive/active)",
+            f"  [{n}] env/{ip}_env_pkg.sv     : include env/{ip}_{n}_vip.sv (before {ip}_env_cfg.sv)",
+            f"  [{n}] env/{ip}_env.sv         : create {n}_vip, assign cfg, connect vsequencer.{n}_sqr = {n}_vip.sqr",
+            f"  [{n}] env/{ip}_vsequencer.sv  : add 'uvm_sequencer_base {n}_sqr;'",
+        ]
+        if f"sim/vip_{proto}.f" in result.created:
+            hints.append(
+                f"  [{n}] sim/Makefile           : add '-f vip_{proto}.f' to FILELISTS (new protocol '{proto}')"
+            )
     return hints

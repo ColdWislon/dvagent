@@ -39,8 +39,9 @@ house layout.
    once; virtual interfaces set into `config_db` at the top; timescale set; test
    selected via `+UVM_TESTNAME`; no test logic in the top.
 3. **Build & packaging** (`sim/*.f` — one `-f` per domain (dut/tb/vip),
-   `*_pkg.sv`, `sim/Makefile`; all tool access
-   via the `dv` wrapper, never raw xrun) — filelists
+   `*_pkg.sv`, `sim/Makefile`; all tool access via the `sim/Makefile`
+   flow — or the site `dv` wrapper where one exists — never raw xrun) —
+   filelists
    complete and correctly ordered; package does `import uvm_pkg::*` and
    `` `include "uvm_macros.svh" ``; incdirs / defines / `-uvmhome` correct;
    zero-warning compile policy; no absolute or user-specific paths.

@@ -21,7 +21,7 @@ Determine how this repo compiles/simulates, in this order:
 ## 2. Orient them (read-only)
 Read what exists and summarize in under a page, flagging anything missing:
 - `GETTING_STARTED.md` (uvm-gen envs) and/or `USERGUIDE.md` / `.github/USERGUIDE.md`
-- the per-IP context `docs/CLAUDE.md` (or `<ip>/docs/CLAUDE.md`) — if it is
+- the per-IP context `docs/CLAUDE.md` (or `<ip>_verif/docs/CLAUDE.md`) — if it is
   a template full of brackets, tell them filling it is a first-week task
 - `docs/vplan.md` — does a real vplan exist, or only the skeleton?
 - verification state: `verif_matrix.yaml` / `make -C sim matrix` output, or

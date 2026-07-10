@@ -5,8 +5,10 @@ description: 'Read-only briefing on the current work: done, in flight, risks, ra
 ---
 Brief me on the CURRENT work in this worktree — do not ask me which IP,
 infer it from context. Resolve the IP from: the working directory path
-(which <ip>/ subtree am I in), the repo layout (`git rev-parse
---show-toplevel`, then locate the rtl/ and dv/ dirs), or the branch name
+(which <ip>_verif/ subtree am I in), the repo layout (`git rev-parse
+--show-toplevel`, then locate the env dirs — the ones containing `sim/`,
+`env/`, `dv/`; RTL lives outside them, referenced by `sim/dut.f`), or the
+branch name
 (agent/<workflow>/... often carries it). If exactly one IP is present,
 use it silently. Only if the worktree genuinely spans multiple IPs or
 none can be identified, ask ONE disambiguation question — otherwise

@@ -29,7 +29,7 @@ DUT actually saw also catches driver bugs.
 3. Checking model: reference function, transfer function, or in/out ordering.
 
 ## Procedure
-1. Create `<proj>_scoreboard.svh` from `assets/templates/scoreboard.svh.tmpl`.
+1. Create `<proj>_scoreboard.sv` (`.sv` in this infra) from `assets/templates/scoreboard.svh.tmpl`.
 2. For one stream use `uvm_analysis_imp`; for multiple streams use
    `` `uvm_analysis_imp_decl(_<name>) `` to get `write_<name>` methods.
 3. Feed the expected/input side from an **input monitor**, transform it through

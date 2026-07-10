@@ -6,6 +6,8 @@
 //   make run TEST=axi_scbd_data_neg_test PLUSARGS='+CHKQ_ENABLE' XRUN_OPTS='-access +rwc'
 //   (wrapper: dv sim <ip> axi_scbd_data_neg_test --plusargs +CHKQ_ENABLE)
 // ---------------------------------------------------------------------------
+`include "chkq_paths.svh"   // central registry of forced paths (CHKQ_PATH_*)
+
 class axi_scbd_data_neg_test extends chkq_base_test;   // or your chkq-reparented base
   `uvm_component_utils(axi_scbd_data_neg_test)
 
@@ -26,11 +28,13 @@ class axi_scbd_data_neg_test extends chkq_base_test;   // or your chkq-reparente
       vseq.start(env.vsequencer);
     join_none
 
-    // 3. Corrupt the DUT read path mid-traffic. Path + value + window are
-    //    part of the qualification record (brittle paths: keep them in one
-    //    place and re-validate when RTL is refactored).
+    // 3. Corrupt the DUT read path mid-traffic. The forced path comes from
+    //    the central registry (chkq_paths.svh, CHKQ_PATH_<CHECK_ID>) — the
+    //    single audit point when RTL is refactored. A literal path here is
+    //    a review finding. Value + window are part of the qualification
+    //    record.
     #2us;
-    injector.force_for("tb_top.dut.u_rd_path.rdata_q", 'hDEAD_BEEF, 300ns);
+    injector.force_for(CHKQ_PATH_SCBD_DATA_CMP, 'hDEAD_BEEF, 300ns);
 
     // 4. Let traffic drain; check_phase enforces the expectation.
     #5us;

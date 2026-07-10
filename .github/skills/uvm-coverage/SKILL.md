@@ -20,7 +20,7 @@ covergroups. Every coverpoint traces back to a vPlan feature.
 4. Illegal and don't-care value spaces.
 
 ## Procedure
-1. Create `<proj>_coverage.svh` from `assets/templates/coverage.svh.tmpl`.
+1. Create `<proj>_coverage.sv` (`.sv` in this infra) from `assets/templates/coverage.svh.tmpl`.
 2. Extend `uvm_subscriber#(<proto>_item)` (gives `write()` + `analysis_export`).
 3. Define the covergroup with coverpoints, crosses, `illegal_bins` and
    `ignore_bins`; set `option.per_instance = 1`.
