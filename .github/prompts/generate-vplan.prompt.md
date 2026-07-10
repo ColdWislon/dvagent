@@ -7,7 +7,8 @@ argument-hint: '<ip> <spec.pdf path> [section/page range]'
 Draft the verification plan for IP ${input:ip} from the PDF spec at
 ${input:spec:path/to/spec.pdf}, scope ${input:scope:all sections}.
 Output: the env root's docs/vplan.md in the exact team format (see
-repo-templates/ip/docs/vplan.md — table columns: ID | Spec ref |
+the skeleton every uvm-gen env starts with as docs/vplan.md
+(source: uvm-gen/uvm_gen/templates/copilot/vplan.md.j2) — table columns: ID | Spec ref |
 Requirement | Coverage mapping | Check mapping | Status).
 
 ## Phase 0 — Suitability check

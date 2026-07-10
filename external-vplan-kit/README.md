@@ -38,6 +38,7 @@ consume it identically whoever drafted it.
   required). Slower, acceptable for text-dominant specs.
 
 Keep VPLAN_DRAFTING_PROMPT.md in lockstep with the in-repo format
-(repo-templates/ip/docs/vplan.md) and the vplan-common-topics skill —
+(uvm-gen/uvm_gen/templates/copilot/vplan.md.j2, rendered into every env
+as docs/vplan.md) and the vplan-common-topics skill —
 they are the same contract in two packagings; drift between them will
 surface as reviewer findings on externally-drafted vplans.

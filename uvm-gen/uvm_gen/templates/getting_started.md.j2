@@ -112,20 +112,24 @@ The repo carries the team's verification methodology:
 
 ## 5. Working with the Copilot DV agents
 
+{% if copilot_in_repo %}
+This workspace carries the team's GitHub Copilot agent pack at the
+repository root (`.github/`) — it serves every `*_verif` environment in it:
+{% else %}
 This environment ships the team's GitHub Copilot agent pack (`.github/`):
+{% endif %}
 seven specialized agents that write tests, stimulus and checkers, close
 coverage, and triage failures — under hard no-shortcut rules (RTL read-only,
 no checker weakening, no claim without a verdict).
 
 Setup (once):
 
-1. Open this repo in VS Code **via Remote-SSH** on the machine where `xrun`
+1. Open {% if copilot_in_repo %}the workspace root{% else %}this repo{% endif %} in VS Code **via Remote-SSH** on the machine where `xrun`
    runs; sign in to Copilot (agent mode) and `Developer: Reload Window` —
    the `dv-*` agents appear in the Chat view's agent picker.
 2. Allow-list `make ` and `git diff`/`git log` in
-   `chat.tools.terminal.autoApprove` (this repo has no `dv` wrapper; the
-   golden-command mapping lives in
-   `.github/instructions/uvm-gen-env.instructions.md`).
+   `chat.tools.terminal.autoApprove` (the golden-command mapping for this
+   flow lives in `.github/copilot-instructions.md`).
 3. Work in a git worktree per agent session.
 
 Then type **`/start-here`** in Copilot chat — a guided, read-only onboarding
@@ -145,12 +149,17 @@ with the right slash command for each. Day-to-day entry points:
 | Debug a failing test | `/triage-failure <test> --seed N {{ ip }}` |
 | Self-review before a MR | `/pre-mr-review` |
 
+{% if copilot_in_repo %}
+The engineer's guide to the agents (rules, budgets, habits, what to do when
+it goes wrong): `USERGUIDE.md` at the workspace root.
+{% else %}
 The engineer's guide to the agents (rules, budgets, habits, what to do when
 it goes wrong): [`.github/USERGUIDE.md`](.github/USERGUIDE.md).
 
 Note: if `{{ ip }}_verif/` is a **subdirectory** of a larger repo rather than
 the repo root, move `.github/` and `cockpit.ini` to that repo's root — VS
 Code only picks the pack up from there.
+{% endif %}
 {% else %}
 
 ## 4. Optional: the Copilot DV agent pack

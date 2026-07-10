@@ -1,8 +1,0 @@
-# Sanity regression list — <IP_NAME>
-# Purpose: fast ripple-safety net (target < 15 min wall). Run mandatory
-# after any change to existing sequence items, base constraints, or
-# shared sequences (stim-writer / coverage-closer rule).
-# Format: <test> <seed|random> [plusargs]
-<ip>_smoke_test          random
-<ip>_smoke_test          1
-# [add 3-6 tests spanning the main traffic types and one corner]

@@ -5,13 +5,21 @@ from pathlib import Path
 
 from conftest import tree_hashes
 
-from uvm_gen.copilot import COMPANION_FILES, RENDERED_FILES, find_pack
+from uvm_gen.copilot import (
+    COMPANION_FILES,
+    PER_ENV_FILES,
+    RENDERED_FILES,
+    STANDALONE_RENDERED,
+    find_pack,
+    find_workspace_pack,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]  # the pack's home repo
 PACK_GITHUB = REPO_ROOT / ".github"
 
 
 def pack_expected_files():
+    """Full standalone staging set."""
     files = {
         str(p.relative_to(REPO_ROOT)) for p in PACK_GITHUB.rglob("*") if p.is_file()
     }
@@ -20,7 +28,7 @@ def pack_expected_files():
         for pack_rel, env_rel in COMPANION_FILES
         if (REPO_ROOT / pack_rel).is_file()
     }
-    files |= {env_rel for _, env_rel in RENDERED_FILES}
+    files |= {env_rel for _, env_rel in RENDERED_FILES + STANDALONE_RENDERED}
     return files
 
 
@@ -143,6 +151,63 @@ def test_yaml_copilot_missing_path_errors(tmp_path, gen, capsys):
     cfg.write_text("ip_name: my_ip\ncopilot: nowhere/\n")
     gen(cfg, out=tmp_path / "out", expect_rc=1)
     assert "Copilot pack not found" in capsys.readouterr().err
+
+
+def _make_workspace(root: Path):
+    """A minimal pack-rooted workspace (as if cloned from the template)."""
+    (root / ".github/prompts").mkdir(parents=True)
+    (root / ".github/copilot-instructions.md").write_text("# contract\n")
+    (root / ".github/prompts/start-here.prompt.md").write_text("---\n---\nhi\n")
+    (root / "chkq-kit").mkdir()
+    for f in ("chkq_pkg.sv", "example_neg_test.sv"):
+        (root / "chkq-kit" / f).write_bytes((REPO_ROOT / "chkq-kit" / f).read_bytes())
+    (root / "docs/methodology").mkdir(parents=True)
+    (root / "docs/methodology/definition-of-done.md").write_text("# DoD\n")
+    (root / "cockpit.ini").write_text("[tool]\n")
+    return root
+
+
+def test_workspace_mode_stages_per_ip_collateral_only(tmp_path, gen):
+    ws = _make_workspace(tmp_path / "ws")
+    cfg = ws / "uart.yaml"
+    cfg.write_text("ip_name: my_ip\nagents: [{name: ctrl}]\n")
+
+    env = gen(cfg, out=ws)
+
+    assert find_workspace_pack(env) == ws.resolve()
+    # the pack is NOT duplicated into the env
+    assert not (env / ".github").exists()
+    assert not (env / "cockpit.ini").exists()
+    assert not (env / "external-vplan-kit").exists()
+    assert not (env / "docs/methodology").exists()
+    # per-IP collateral IS staged
+    assert (env / "docs/CLAUDE.md").exists()
+    assert (env / "docs/vplan.md").exists()
+    assert (env / "dv/tests/negative/chkq_pkg.sv").exists()
+    assert (env / "dv/lists/sanity.list").exists()
+    # wording knows the pack lives at the workspace root
+    text = (env / "GETTING_STARTED.md").read_text()
+    assert "workspace root" in text
+    assert "/start-here" in text
+    assert "move `.github/`" not in text
+
+
+def test_workspace_mode_wins_over_explicit_pack(tmp_path, gen):
+    ws = _make_workspace(tmp_path / "ws")
+    cfg = ws / "ip.yaml"
+    cfg.write_text("ip_name: my_ip\ncopilot: true\n")
+    env = gen(cfg, out=ws)
+    assert not (env / ".github").exists()
+    assert (env / "docs/CLAUDE.md").exists()
+
+
+def test_standalone_mode_unaffected_outside_workspaces(examples_copy, gen, tmp_path):
+    # tmp_path has no pack-rooted ancestor -> full staging (covered in depth
+    # by the tests above); just pin the mode discriminator here.
+    env = gen(examples_copy / "my_ip.yaml", out=tmp_path / "sa")
+    assert find_workspace_pack(env) is None
+    assert (env / ".github/copilot-instructions.md").exists()
+    assert (env / ".github/instructions/uvm-gen-env.instructions.md").exists()
 
 
 def test_rerun_policy_covers_pack_copies(examples_copy, gen):

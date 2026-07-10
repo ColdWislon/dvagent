@@ -8,7 +8,7 @@ from pathlib import Path
 
 from . import __version__
 from .config import ConfigError, load_config
-from .copilot import find_pack, plan_copilot
+from .copilot import find_pack, find_workspace_pack, plan_copilot
 from .generator import (
     build_context,
     check_collisions,
@@ -67,19 +67,24 @@ def _parser() -> argparse.ArgumentParser:
     return p
 
 
-def _resolve_copilot(args, cfg) -> "Path | None":
-    """Returns the pack root to stage, or None. Precedence:
-    --no-copilot > --copilot-pack > YAML copilot: false/path/true > auto."""
-    if args.no_copilot:
-        return None
+def _resolve_copilot(args, cfg, env_root) -> "tuple[Path | None, bool]":
+    """Returns (pack_root, in_repo). Precedence: --no-copilot / copilot:false
+    disable everything; a pack-rooted workspace around the output dir wins
+    (per-IP collateral only, no duplicated .github); otherwise standalone
+    staging from --copilot-pack > YAML copilot: path/true > auto-discovery."""
+    if args.no_copilot or cfg["copilot"] is False:
+        return None, False
+
+    workspace = find_workspace_pack(env_root)
+    if workspace is not None:
+        return workspace, True
+
     config_dir = Path(args.config).resolve().parent
     if args.copilot_pack:
-        return find_pack(args.copilot_pack, config_dir=config_dir)
+        return find_pack(args.copilot_pack, config_dir=config_dir), False
     yaml_copilot = cfg["copilot"]
-    if yaml_copilot is False:
-        return None
     if isinstance(yaml_copilot, str):
-        return find_pack(yaml_copilot, config_dir=config_dir)
+        return find_pack(yaml_copilot, config_dir=config_dir), False
     pack = find_pack()
     if pack is None and yaml_copilot is True:
         raise ConfigError(
@@ -87,7 +92,7 @@ def _resolve_copilot(args, cfg) -> "Path | None":
             "(copilot: true) but none was found next to uvm-gen - point "
             "--copilot-pack (or 'copilot: <path>') at a pack root"
         )
-    return pack
+    return pack, False
 
 
 def main(argv=None) -> int:
@@ -102,20 +107,21 @@ def main(argv=None) -> int:
     for warning in cfg["warnings"]:
         print(f"uvm-gen: warning: {warning}", file=sys.stderr)
 
+    env_root = Path(args.output_dir) / f"{cfg['ip_name']}_verif"
     try:
-        pack_root = _resolve_copilot(args, cfg)
+        pack_root, copilot_in_repo = _resolve_copilot(args, cfg, env_root)
     except ConfigError as exc:
         print(f"uvm-gen: error: {exc}", file=sys.stderr)
         return 1
 
     ctx = build_context(cfg, input_basename=Path(args.config).name)
     ctx["has_copilot"] = pack_root is not None
-    env_root = Path(args.output_dir) / f"{cfg['ip_name']}_verif"
+    ctx["copilot_in_repo"] = copilot_in_repo
     finalize_context(ctx, Path(args.config), env_root)
 
     actions = plan(cfg, chain, ctx)
     if pack_root is not None:
-        actions += plan_copilot(pack_root)
+        actions += plan_copilot(pack_root, in_repo=copilot_in_repo)
     check_collisions(actions)
     result = execute(actions, env_root, ctx, force=args.force, dry_run=args.dry_run)
 
@@ -125,7 +131,12 @@ def main(argv=None) -> int:
         f"'{cfg['config_name']}' (params hash {ctx['param_hash']}){mode}"
     )
     print(f"  environment root: {env_root}")
-    if pack_root is not None:
+    if copilot_in_repo:
+        print(
+            f"  copilot pack: workspace root {pack_root} already carries it - "
+            "staged per-IP collateral only (docs/, dv/)"
+        )
+    elif pack_root is not None:
         print(f"  copilot pack: staged from {pack_root} (see GETTING_STARTED.md)")
     else:
         print(

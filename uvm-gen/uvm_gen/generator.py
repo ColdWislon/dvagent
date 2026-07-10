@@ -120,10 +120,12 @@ def build_context(cfg: dict, input_basename: str) -> dict:
         "input_basename": input_basename,
         "params_canonical": canonical_params(cfg["params"]),
         "param_hash": param_hash_hex(cfg["params"]),
-        # True when the Copilot DV agent pack is staged into the env (set by
-        # the CLI after pack discovery); gates pack-aware sections in
-        # GETTING_STARTED.md, README.md and tb.f.
+        # Set by the CLI after pack discovery: has_copilot gates pack-aware
+        # sections in GETTING_STARTED.md, README.md and tb.f; copilot_in_repo
+        # is True when the env is generated inside a pack-rooted workspace
+        # (the pack lives at the repo root, not inside the env).
         "has_copilot": False,
+        "copilot_in_repo": False,
     }
 
 
