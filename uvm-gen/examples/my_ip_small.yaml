@@ -1,0 +1,10 @@
+# 'small' configuration of my_ip: deep-merges onto my_ip.yaml (this file wins).
+extends: my_ip.yaml
+config_name: small
+
+params:
+  DATA_WIDTH: 32
+  NUM_CHANNELS: 1
+  FIFO_DEPTH:
+    value: 4
+    style: defparam

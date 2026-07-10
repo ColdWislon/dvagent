@@ -1,0 +1,41 @@
+# ----------------------------------------------------------------------------
+# Base configuration for the example IP 'my_ip'.
+# Generate with:  ./uvm_gen.py examples/my_ip.yaml -o <workdir>
+# Derived configurations (my_ip_small.yaml / my_ip_large.yaml) extend this
+# file and override config_name + params only.
+# ----------------------------------------------------------------------------
+ip_name: my_ip
+
+dut:
+  module: my_ip_top
+  rtl_filelist: rtl/my_ip.f        # relative to this YAML; recorded into sim/dut.f
+
+# Custom (non-VIP) interfaces: one full UVM agent is generated per entry.
+agents:
+  - name: ctrl
+    mode: active                   # driver + sequencer + monitor
+  - name: irq
+    mode: passive                  # monitor only (RTL/other side drives)
+
+# Cadence VIP instances (apb | ahb | i3c).
+vips:
+  - protocol: apb
+    name: apb0
+    role: master                   # apb/ahb: master | slave | passive
+  - protocol: i3c
+    name: i3c0
+    role: controller               # i3c: controller | target | passive
+    ibi_enable: true               # In-Band Interrupts (sensible default)
+
+# RTL/DV parameters for this configuration.
+#  * scalar            -> +define+NAME=VALUE          (style: define)
+#  * style: defparam   -> -defparam tb_top.dut.NAME=VALUE (path: overrides)
+#  * style: env        -> no compile flag (DV-only knob)
+# Every param also becomes a field in my_ip_env_cfg (+PARAM_NAME= plusarg),
+# so env behavior/coverage can adapt per configuration.
+params:
+  DATA_WIDTH: 32
+  NUM_CHANNELS: 2
+  FIFO_DEPTH:
+    value: 8
+    style: defparam

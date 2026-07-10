@@ -1,0 +1,13 @@
+# verif_matrix.yaml - verification tracking for IP '{{ ip }}' (uvm-gen v{{ tool_version }})
+#
+# One record is appended per simulation run by sim/scripts/cfg_tool.py
+# (invoked from 'make run' / 'make waves'; vManager regressions go through the
+# same path). Human-auditable and machine-queryable (a YAML list of records):
+#   - config_name : configuration the run used (from its YAML / banner)
+#   - param_hash  : FNV-1a signature of the full parameter set
+#   - test, seed, result (pass|fail), uvm_errors, uvm_fatals
+#   - coverage    : % when available (null otherwise)
+#   - date, git_rev, log, params
+#
+# 'make matrix' prints the per-configuration summary from this file.
+# uvm-gen NEVER overwrites this file, not even with --force.

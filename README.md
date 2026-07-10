@@ -197,3 +197,13 @@ Shared core: `uvm-coding-standard` (authoritative; detailed by
 `naming-conventions` / `phasing-check` / `deprecation-lint`), the `dv` wrapper
 contract, chkq, the DoD, and `vertical-reuse`. See
 `.github/skills/SKILLS-README.md` for the full skill map.
+
+## Standalone tooling — uvm-gen
+
+[`uvm-gen/`](uvm-gen/README.md) is a self-contained CLI (Python + Jinja2, no
+Copilot/agent dependency) that generates complete UVM IP verification
+environments for Xcelium from a YAML spec: agents, env (scoreboard/coverage/
+vsequencer/RAL hook), Cadence VIP hookups (APB/AHB/I3C), smoke test, tb_top,
+Makefile/xrun flow, vManager vsif, and multi-configuration tracking via
+`verif_matrix.yaml`. Generated envs are SoC-reuse ready (single env_cfg via
+config_db, per-agent passive switch). See `uvm-gen/README.md`.
