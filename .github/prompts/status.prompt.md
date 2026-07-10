@@ -20,11 +20,14 @@ running `dv cov report`.
 ## Gather (skip gracefully and say so if an artifact is missing)
 1. Branch state: current branch vs integration branch — commits ahead
    (one line each), uncommitted changes (`git status -s`,
-   `git diff --stat`), current RTL revision of <ip>/rtl.
-2. Recent evidence: newest run dirs under runs/ — read their verdict
-   JSONs and any session reports; note pass/fail, seeds, and whether
-   evidence exists for the uncommitted work.
-3. Vplan (<ip>/docs/vplan.md): item counts by status; items marked
+   `git diff --stat`), current RTL revision (the RTL dir is referenced by
+   sim/dut.f; "stub DUT" if dut.f still selects the generated stub).
+2. Recent evidence: verif_matrix.yaml records (newest first; or
+   `make -C sim matrix` for the summary), session sidecars in dv/status/,
+   and wrapper verdict JSONs under runs/ where a dv wrapper exists; note
+   pass/fail, seeds, configs, and whether evidence exists for the
+   uncommitted work.
+3. Vplan (docs/vplan.md): item counts by status; items marked
    `[design-intent — spec silent]` still open; completeness-matrix rows
    that are empty or unjustified-N/A; revision anchors vs the actual
    RTL revision (stale = flag it).
@@ -32,8 +35,8 @@ running `dv cov report`.
    check-ID inventory in docs/CLAUDE.md vs dv/lists/chkq.list (checks
    with no negative test = unqualified).
 5. Health signals: does the sanity list exist and when did it last pass
-   (from run artifacts, do not re-run); any CHKQ_PATH/CHKQ_BLIND in
-   recent verdicts.
+   (from verif_matrix.yaml / run artifacts, do not re-run); any
+   CHKQ_PATH/CHKQ_BLIND in recent verdicts/logs.
 
 ## Report (one screen, evidence-cited, no inflation)
 **Done** — merged/committed on this branch, each with its verdict

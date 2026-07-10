@@ -33,7 +33,7 @@ does not own objections (the test does) and does not touch pins.
 - No virtual interface access and no `#` delays inside the sequence.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Produces only legal stimulus; `randomize()` succeeds.
 - [ ] Knobs exposed as `rand` members; reusable under a virtual sequence.
 - [ ] No pin access, no `#` delay, no self-owned objection when nested.

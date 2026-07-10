@@ -5,8 +5,10 @@ read; the rest you learn by doing.
 
 ## What this is, in 30 seconds
 
-Six specialized Copilot agents that work inside our UVM environments
-through the `dv` wrapper: they write tests, stimulus, and checkers, close
+Six specialized Copilot agents that work inside our UVM environments —
+uvm-gen-generated testbenches driven through their `sim/Makefile` (or a
+team `dv` wrapper where one exists): they write tests, stimulus, and
+checkers, close
 coverage, and triage failures — always closing the loop with real
 compile/sim/coverage verdicts, never by claiming success. You drive them
 from VS Code chat; you review and merge everything. The no-shortcut rules
@@ -16,13 +18,15 @@ CI gate on every MR — agent-authored or not.
 ## One-time setup
 
 1. VS Code with **Remote-SSH into your farm/interactive node** (where
-   `xrun` and `dv` resolve). Agent mode runs commands on that machine —
-   a local-laptop window cannot simulate anything.
+   `xrun` — and the `dv` wrapper, if your team has one — resolve). Agent
+   mode runs commands on that machine — a local-laptop window cannot
+   simulate anything.
 2. Copilot extension signed in, agent mode available. Check out a repo
    branch containing the `.github/` pack; reload the window
    (`Developer: Reload Window`). The agents appear in the Chat view's
    agent picker (dropdown, not `@`).
-3. Terminal approval: allow-list `dv ` (and `git diff`/`git log`) in
+3. Terminal approval: allow-list `make ` (and `git diff`/`git log`;
+   plus `dv ` if your team has the wrapper) in
    `chat.tools.terminal.autoApprove` — workspace settings ship this.
    Do NOT blanket-approve terminal commands on farm hosts.
 4. Work in your own **git worktree** per agent session — parallel agents
@@ -73,7 +77,8 @@ risks, and ranked next actions as ready-to-run commands.
 2. The agent reads the vplan item and spec ref, surveys existing
    sequences, states its plan. Sanity-check the plan — 30 seconds now
    saves an hour later.
-3. It implements, then loops: `dv compile` → `dv sim` ×3 seeds →
+3. It implements, then loops: compile → sim ×3 seeds (`make compile`,
+   `make run TEST=... SEED=...`; wrapper: `dv compile`/`dv sim`) →
    coverage-bin check. You'll see every verdict; it may ask you a
    question if it hits an unknown (answer it — answers persist).
 4. It produces the session report (files, verbatim verdicts, seeds,
@@ -129,8 +134,9 @@ risks, and ranked next actions as ready-to-run commands.
 - Review plans before code, diffs before merge. The agent is a fast,
   knowledgeable, occasionally overconfident junior engineer: treat its
   MRs with exactly the scrutiny that description deserves.
-- Never paste raw sim logs into chat; point the agent at the log path —
-  it has `dv log` tools for that.
+- Never paste raw sim logs into chat; point the agent at the log path
+  (sim/logs/...) — it has triage tooling for that (log-triage script;
+  `dv log` with a wrapper).
 
 ## Your responsibilities (the short version)
 

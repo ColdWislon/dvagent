@@ -16,14 +16,16 @@ classification, and a normalized **failure signature** for clustering. The first
 error is almost always the cause; later errors are usually fallout.
 
 **Where this runs.** In an agent session, raw logs are not opened wholesale:
-use `dv log first-error <log>` / `dv log grep` (team contract) and interpret
+use `scripts/triage_log.py <log>` (or `dv log first-error` / `dv log grep`
+with a wrapper — team contract) and interpret
 its verdict with the reading rules below. `scripts/triage_log.py` is the
 CI/wrapper-side implementation of the same triage -- run it in Jenkins
 post-regression (or wire it behind `dv log first-error`) to batch-produce
 signatures; it is not an excuse for an agent to bypass the wrapper.
 
 ## Procedure
-1. Get the first error: `dv log first-error <log>` in a session, or
+1. Get the first error: `python3 .github/skills/log-triage/scripts/triage_log.py sim/logs/<log>`
+   in a session (wrapper: `dv log first-error <log>`), or
    `scripts/triage_log.py <logfile ...>` CI-side (parses, classifies,
    extracts first error + signature, emits JSON).
 2. Read the JSON. Interpret only where the script cannot: read the log lines

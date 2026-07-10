@@ -13,7 +13,8 @@ whole file into a test.
 7. vsif / vManager registration
 8. Traceability
 
-> Handle names below (`m_env`, `m_vsequencer`) are placeholders. Match the
+> Handle names below (`env`, `vsequencer` — the uvm-gen shape) are the
+> house convention. Match the
 > actual handle names exposed by the project base env.
 
 ---
@@ -39,7 +40,7 @@ class <feat>_test extends <proj>_base_test;   // [1] base owns env/cfg/reporting
     phase.raise_objection(this, "<feat>_test: start");  // [6] one raise ...
     if (!vseq.randomize())                              // [7] fatal on fail
       `uvm_fatal(get_type_name(), "vseq randomization failed")
-    vseq.start(m_env.m_vsequencer);                     // [8] launch on vseqr
+    vseq.start(env.vsequencer);                         // [8] launch on vseqr
     phase.drop_objection(this, "<feat>_test: done");    // [6] ... one drop
   endtask
 endclass

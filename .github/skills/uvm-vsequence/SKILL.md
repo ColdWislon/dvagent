@@ -23,7 +23,8 @@ pins and never generates items directly.
 1. Create `<feat>_vseq.svh` from `assets/templates/vsequence.svh.tmpl`.
 2. Declare the typed virtual sequencer with `` `uvm_declare_p_sequencer ``.
 3. In `body()`, create each sub-sequence via the factory and `start` it on the
-   matching `p_sequencer.m_<role>_seqr`. Use `fork/join` for concurrent traffic.
+   matching `p_sequencer.<name>_sqr` — guard for null first (passive agents
+   at SoC level leave their handle null). Use `fork/join` for concurrent traffic.
 
 ## Hard rules (never violate)
 - Extends the vseq base; declares `p_sequencer` via
@@ -35,7 +36,7 @@ pins and never generates items directly.
   symmetrically and the test does not double-hold.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Starts each sub-sequence on the correct sub-sequencer.
 - [ ] Concurrency/ordering matches the intended scenario.
 - [ ] Reusable at subsystem/SoC level (no block-specific hard-coding).

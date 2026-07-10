@@ -6,7 +6,7 @@ argument-hint: '<ip> <spec.pdf path> [section/page range]'
 ---
 Draft the verification plan for IP ${input:ip} from the PDF spec at
 ${input:spec:path/to/spec.pdf}, scope ${input:scope:all sections}.
-Output: <ip>/docs/vplan.md in the exact team format (see
+Output: the env root's docs/vplan.md in the exact team format (see
 repo-templates/ip/docs/vplan.md — table columns: ID | Spec ref |
 Requirement | Coverage mapping | Check mapping | Status).
 
@@ -44,7 +44,7 @@ producing a low-confidence draft here.
    language. Split compound requirements — an "and/or" usually means two
    items.
 3. ID scheme: VP-${input:ip}-nnn, numbered in spec order, never reused.
-   If <ip>/docs/vplan.md already exists, EXTEND it (continue numbering,
+   If docs/vplan.md already exists, EXTEND it (continue numbering,
    touch no existing rows) — never regenerate over human-reviewed items.
 4. MAPPINGS ARE PROPOSALS: propose covergroup/bin and check-ID names per
    the naming standard, prefixed "(proposed)" when the artifact does not

@@ -33,7 +33,7 @@ when active. Active/passive is decided by config, never hard-coded.
 - No stimulus and no checking inside the agent.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Active build creates driver + monitor + sequencer and connects them.
 - [ ] Passive build creates the monitor only.
 - [ ] Agent `ap` forwards the monitor's transactions; behaviour is config-driven.

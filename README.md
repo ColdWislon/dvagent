@@ -49,8 +49,10 @@ verdict — add it to the wrapper requirements.
 
 ## Wrapper knowledge protocol (ask, never guess)
 
-Agents treat `dv` semantics as unknown-until-confirmed: consult the
-`dv-wrapper` skill, probe `--help`, and only then ask the engineer via
+Agents treat flow semantics as unknown-until-confirmed: consult the
+`dv-wrapper` skill (whose no-wrapper section records the uvm-gen make
+flow as confirmed fact), probe `make help`/`--help`, and only then ask
+the engineer via
 the built-in askQuestions tool — persisting every answer back into the
 skill so each question is asked once per team, not once per session.
 Run `/learn-dv-wrapper` once per setup (and after wrapper changes) to
@@ -105,7 +107,8 @@ Operational notes:
 ## Agent boundaries
 
 Test-writer vs. stim-writer is an artifact-type split, not an intent
-split: new reusable classes under `dv/seq/` (sequences, items, constraint
+split: new reusable stimulus classes (sequences in `seq_lib/`, items and
+base sequences under `agents/<name>_agent/`, constraint
 layers) belong to the stim-writer and its distribution oracle; test
 classes, covergroups, and thin single-test subclasses of existing
 sequences belong to the test-writer. Reciprocal handoffs cover the cases
@@ -114,18 +117,24 @@ test.
 
 ## Prerequisites (in order of importance)
 
-1. **The `dv` wrapper CLI on PATH of the Remote-SSH host.** The agents are
-   written against its JSON verdicts and are explicitly forbidden from
-   calling `xrun`/`imc` directly. Minimum viable subset for day one:
-   `dv compile`, `dv sim`, `dv log first-error`. Coverage subcommands can
+1. **A working simulation flow on the Remote-SSH host.** Default: the
+   uvm-gen environment's `sim/Makefile` with `xrun` on PATH — the agent
+   contract's golden-verb table maps every `dv <verb>` onto it, and the
+   dv-wrapper skill records its facts as confirmed. Teams layering a `dv`
+   wrapper CLI: minimum viable subset for day one is `dv compile`,
+   `dv sim`, `dv log first-error`. Either way agents are forbidden from
+   calling `xrun`/`imc` ad hoc. A coverage flow (IMC/`dv cov`) can
    follow; until then `dv-coverage-closer` should not be deployed.
 2. **Per-IP `CLAUDE.md`/context docs and vplans** where the agent contract
-   says they are (`<ip>/docs/`). The test-writer refuses work it cannot
-   trace to a vplan item — that is intentional; seed the vplans first.
+   says they are (the env root's `docs/` — uvm-gen pre-fills CLAUDE.md
+   and the vplan skeleton at generation). The test-writer refuses work it
+   cannot trace to a vplan item — that is intentional; seed the vplans
+   first.
 3. **Terminal auto-approval.** For a smooth loop, allow-list only the
-   wrapper in workspace settings, e.g. `chat.tools.terminal.autoApprove`
-   with an entry for `dv ` (plus `git diff`/`git log` for the reviewer).
-   Do NOT blanket-approve terminal commands on farm hosts.
+   flow entry points in workspace settings, e.g.
+   `chat.tools.terminal.autoApprove` with an entry for `make ` (plus
+   `git diff`/`git log` for the reviewer, and `dv ` where a wrapper
+   exists). Do NOT blanket-approve terminal commands on farm hosts.
 4. **Tool identifiers.** The `tools:` lists use namespaced VS Code
    names (terminal access = `execute/runInTerminal`,
    `execute/getTerminalOutput`, `read/terminalLastCommand`,

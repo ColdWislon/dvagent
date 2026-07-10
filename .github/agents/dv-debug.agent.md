@@ -14,26 +14,31 @@ weakened check.
 # Iron rules of debug
 
 1. Reproduce first: rerun the exact failing seed with
-   `dv sim <ip> <test> --seed <failing_seed>` before reading any code.
+   `make run TEST=<test> SEED=<failing_seed>` (same `CFG=`; wrapper:
+   `dv sim ... --seed`) before reading any code.
    If it does not reproduce, report a stability/race suspicion and rerun
    the same seed 3 times before anything else.
 2. One hypothesis per iteration. State it, state the experiment that would
    falsify it, run that experiment, record the outcome. No shotgun edits.
-3. Budget: max 6 `dv sim` runs. At budget, stop and produce a findings
+3. Budget: max 6 sim runs. At budget, stop and produce a findings
    summary (hypotheses tried, evidence, next steps) for a human.
-4. The first error is the error. Use `dv log first-error <log>`; everything
-   after the first `UVM_ERROR`/`UVM_FATAL` is usually fallout.
+4. The first error is the error. Use
+   `python3 .github/skills/log-triage/scripts/triage_log.py sim/logs/<log>`
+   (wrapper: `dv log first-error`); everything after the first
+   `UVM_ERROR`/`UVM_FATAL` is usually fallout.
 
 # Step zero on a moving DUT: what changed?
 
 Before hypothesizing, compare revisions: when did this test last pass
-(regression history / verdict archive), and what moved since —
-`git -C <ip>/rtl log --oneline <last_pass_rev>..HEAD` and the same for
-dv/. A failure appearing right after an RTL drop with no TB change is a
+(`verif_matrix.yaml` is the run history — grep the test/config), and what
+moved since — `git -C <rtl_dir> log --oneline <last_pass_rev>..HEAD`
+(the RTL dir comes from `sim/dut.f`; if dut.f still selects the generated
+stub, the DUT never changed) and `git log` on the env itself. A failure
+appearing right after an RTL drop with no TB change is a
 DESIGN-REGRESSION suspect first: confirm by running the failing seed on
 the previous RTL revision (if snapshots/worktrees allow). If the commit
 range is wide, propose a bounded `git bisect` with
-`dv sim <ip> <test> --seed <N>` as the oracle — mechanical, and worth
+`make run TEST=<test> SEED=<N>` as the oracle — mechanical, and worth
 its sim budget (ask the engineer before spending it; bisect runs count
 against an EXTENDED budget of 12, granted on approval). A confirmed
 regression produces an RTL-suspect report naming the guilty commit —
@@ -44,13 +49,15 @@ the strongest evidence this agent can deliver.
 - **Compile/elab error** → fix the code, done.
 - **UVM_FATAL in build/connect** (config_db miss, factory, null handle) →
   inspect env wiring; these are TB bugs by definition.
-- **Scoreboard mismatch** → rerun same seed with `--verbosity UVM_HIGH`,
-  trace the offending transaction id on both expected and actual paths.
+- **Scoreboard mismatch** → rerun same seed with `VERBOSITY=UVM_HIGH`
+  (wrapper: `--verbosity`), trace the offending transaction id on both
+  expected and actual paths.
   Decide explicitly: reference-model wrong (fix model — a model fix must be
   justified against the SPEC, not against the DUT's behavior) or DUT wrong
   (→ RTL-suspect report).
-- **Timeout / hang** → rerun with `--waves`; check interface handshake
-  state and objection drain (`+UVM_OBJECTION_TRACE`).
+- **Timeout / hang** → rerun with `make waves TEST=<test>` (wrapper:
+  `--waves`); check interface handshake state and objection drain
+  (`PLUSARGS='+UVM_OBJECTION_TRACE'`).
 - **Assertion failure** → analyze against the spec. NEVER edit, disable,
   or `$assertoff` the assertion. If you believe the assertion itself is
   wrong, write the argument in the report; a human owns SVA changes.
@@ -64,7 +71,8 @@ the strongest evidence this agent can deliver.
 
 # RTL-suspect report format
 
-When the DUT is the suspect, produce `runs/<ts>/rtl_suspect_report.md`:
+When the DUT is the suspect, produce
+`dv/status/rtl_suspect_<date>.md` (next to the session sidecars):
 failing seed and command line, spec reference the behavior violates,
 transaction-level trace of the divergence, minimal reproduction (shortest
 test/seed that shows it), and the RTL region implicated (file/module, from

@@ -43,7 +43,7 @@ components.
 - No logic in the config beyond defaults and simple helpers.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Interface set at top and reaches driver/monitor via the config.
 - [ ] Values typed and scoped; no unscoped `"*"` sets.
 - [ ] Consumers `get` the config in `build_phase` with a fatal on absence.

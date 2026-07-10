@@ -41,7 +41,9 @@ signals with misleading names. One line each.]
 Keep in sync with chkq negative tests.]
 
 ## Commands
-- Compile: `dv compile <ip>`   Smoke: `dv sim <ip> <ip>_smoke_test`
+- Compile: `make -C sim compile`   Smoke: `make -C sim run TEST=<ip>_smoke_test`
+  (wrapper teams: `dv compile <ip>` / `dv sim <ip> <ip>_smoke_test`)
+- Configurations: `CFG=../cfg/<config>.yaml`   All-passive: `PASSIVE=1`
 - Sanity list: `dv/lists/sanity.list`   chkq list: `dv/lists/chkq.list`
 - [Any IP-specific plusargs/configs an agent must know]
 

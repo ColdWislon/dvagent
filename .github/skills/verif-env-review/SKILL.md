@@ -33,16 +33,20 @@ house layout.
    factory/config, reuse, checking independence), reusing the three law skills
    (`naming-conventions`, `phasing-check`, `deprecation-lint`) and
    `deprecation-lint/scripts/lint.py`. Roll its findings up as this axis.
-2. **DUT integration / TB top** (`*_tb_top.sv`, `hdl_top` / `hvl_top`) — DUT and
+2. **DUT integration / TB top** (`tb/tb_top.sv` in uvm-gen envs; site
+   variants `*_tb_top.sv`, `hdl_top` / `hvl_top`) — DUT and
    interfaces instantiated; clock / reset generation present; `run_test()` called
    once; virtual interfaces set into `config_db` at the top; timescale set; test
    selected via `+UVM_TESTNAME`; no test logic in the top.
-3. **Build & packaging** (`*.f`, `*_pkg.sv`, compile scripts; all tool access
+3. **Build & packaging** (`sim/*.f` — one `-f` per domain (dut/tb/vip),
+   `*_pkg.sv`, `sim/Makefile`; all tool access
    via the `dv` wrapper, never raw xrun) — filelists
    complete and correctly ordered; package does `import uvm_pkg::*` and
    `` `include "uvm_macros.svh" ``; incdirs / defines / `-uvmhome` correct;
    zero-warning compile policy; no absolute or user-specific paths.
-4. **Regression (vManager)** (`*.vsif`) — tests grouped into sessions; seed
+4. **Regression (vManager)** (`sim/<ip>_<config>.vsif`, one per
+   configuration; `verif_matrix.yaml` as the run record) — tests grouped
+   into sessions; seed
    policy is random *and* captured for rerun; run counts set; the test list is
    version-controlled and reproducible.
 5. **Coverage flow (IMC)** (merge / rank scripts, coverage config) — functional
@@ -56,7 +60,8 @@ house layout.
    the closure metric is tied to the M0-M3 ladder and the DoD gate.
 8. **CI gates (Jenkins)** — pipeline runs compile -> smoke -> nightly regression
    -> coverage merge -> review; deterministic gates are wired (the review JSON,
-   the DoD checklists, the lint exit code, `dv lint --diff`); logs / ucdb /
+   the DoD checklists, the exit code of deprecation-lint's `lint.py`
+   (wrapper: `dv lint --diff`)); logs / ucdb /
    reports archived; a failing gate blocks merge. The per-item DoD is the
    team's `docs/methodology/definition-of-done.md`; this review's milestone
    verdict must not contradict it. Complementary to the `dv-reviewer` agent:

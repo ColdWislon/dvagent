@@ -13,10 +13,13 @@ A vplan item / MR is DONE when ALL hold:
 0. **(Vplan-level, once per block)**: the cross-cutting completeness
    matrix is fully resolved — every common topic mapped to items or a
    justified N/A — before the block enters coverage-closure phase.
-2. **Compile & lint**: `dv compile` clean; `dv lint --diff` clean.
+2. **Compile & lint**: compile clean (`make compile`; wrapper: `dv
+   compile`); deprecation-lint `lint.py` clean on the touched TB paths
+   (wrapper: `dv lint --diff`).
 3. **Simulation evidence**: passing verdicts attached verbatim for ≥3
-   seeds (listed), zero UVM_ERROR/FATAL, end-of-test marker present,
-   zero new UVM_WARNINGs vs. baseline.
+   seeds (listed) — verif_matrix.yaml records / UVM report summaries
+   (wrapper: JSON verdicts) — zero UVM_ERROR/FATAL, end-of-test marker
+   present, zero new UVM_WARNINGs vs. baseline.
 4. **Coverage evidence**: the item's mapped bins hit (verdict attached);
    no unexplained coverage regression in touched groups.
 5. **Check evidence**: the item's mapped check IDs exist, were exercised

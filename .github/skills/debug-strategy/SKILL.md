@@ -21,11 +21,13 @@ step-zero "what changed" on a moving DUT, and the never-weaken-checkers rule.
 The team `debug-playbook` skill owns the base tactics. This skill's
 `references/playbooks.md` is the EXTENSION layer: per-failure-mode probe
 recipes (X-prop, randomize failure, RAL, SVA vacuity) beyond the base
-playbook. All commands go through `dv` (`dv sim --seed`, `dv log
-first-error`) -- never raw xrun.
+playbook. All commands go through the env's make flow (`make run
+TEST=<t> SEED=<s>`, `triage_log.py`) or the team's `dv` wrapper -- never
+raw xrun ad hoc.
 
 ## Procedure
-1. **Reproduce** — same test + seed (`dv sim <ip> <test> --seed <s>`); confirm
+1. **Reproduce** — same test + seed (`make run TEST=<test> SEED=<s>`;
+   wrapper: `dv sim ... --seed <s>`); confirm
    the same failure. If it does not reproduce, rerun the same seed 3x and treat
    as race/instability, not the reported error (dv-debug rule).
 2. **Localise in time** — from `log-triage`: first-error time T. The bug is at

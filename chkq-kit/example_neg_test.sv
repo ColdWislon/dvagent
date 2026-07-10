@@ -2,8 +2,9 @@
 // Example negative test: qualifies check ID "SCBD_DATA_CMP".
 // Pattern: normal traffic + one RTL-side corruption via the injector +
 // a registered expectation that the scoreboard catches exactly it.
-// Lives under dv/tests/negative/, runs with:
-//   dv sim <ip> axi_scbd_data_neg_test --plusargs +CHKQ_ENABLE   (no coverage)
+// Lives under dv/tests/negative/, runs with (no coverage):
+//   make run TEST=axi_scbd_data_neg_test PLUSARGS='+CHKQ_ENABLE' XRUN_OPTS='-access +rwc'
+//   (wrapper: dv sim <ip> axi_scbd_data_neg_test --plusargs +CHKQ_ENABLE)
 // ---------------------------------------------------------------------------
 class axi_scbd_data_neg_test extends chkq_base_test;   // or your chkq-reparented base
   `uvm_component_utils(axi_scbd_data_neg_test)

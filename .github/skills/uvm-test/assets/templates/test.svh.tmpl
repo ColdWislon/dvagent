@@ -3,7 +3,7 @@
 // VP-xxx
 // -----------------------------------------------------------------------------
 // Substitute: <feat> (snake_case), <FEAT> (UPPER), <proj> (base-test prefix),
-// <feat>_vseq (virtual sequence). Match m_env / m_vsequencer to the base env's
+// <feat>_vseq (virtual sequence). Match env / vsequencer to the base env's
 // actual handle names.
 `ifndef <FEAT>_TEST_SVH
 `define <FEAT>_TEST_SVH
@@ -35,7 +35,7 @@ class <feat>_test extends <proj>_base_test;
     if (!vseq.randomize())
       `uvm_fatal(get_type_name(), "vseq randomization failed")
 
-    vseq.start(m_env.m_vsequencer);   // vsequencer owned by the base env
+    vseq.start(env.vsequencer);       // vsequencer owned by the base env
 
     phase.drop_objection(this, "<feat>_test: done");
   endtask : run_phase

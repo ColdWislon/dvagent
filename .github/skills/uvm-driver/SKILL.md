@@ -36,7 +36,7 @@ a virtual interface. It contains no checking and no coverage.
 - Handle reset explicitly; do not drive X onto controlled signals off reset.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Handshake balanced (no sequencer stalls, no double `item_done`).
 - [ ] Reset-clean: idles on reset, resumes correctly after.
 - [ ] Pins driven to defined values out of reset.

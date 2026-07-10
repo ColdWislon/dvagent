@@ -3,16 +3,42 @@
 You are working in a SystemVerilog/UVM verification repository on a Cadence
 Xcelium flow. These rules apply to every chat request and every agent.
 
-## Golden commands — never call xrun/imc/vmanager directly
-- Compile:        `dv compile <ip>`
-- Simulate:       `dv sim <ip> <test> [--seed N] [--waves] [--verbosity UVM_HIGH]`
-- Coverage holes: `dv cov report <ip> --holes --top 25`
-- Coverage delta: `dv cov delta <ip> --before <db> --after <db>`
-- First error:    `dv log first-error <logfile>`
+## Golden commands — never invoke xrun/imc/vmanager ad hoc
 
-Every `dv` command prints a JSON verdict on stdout. `status != "pass"` means
-read `errors[]` or `first_error` — do not open raw simulation logs; they are
-too large. Use `dv log first-error` / `dv log grep` for log access.
+Each IP's testbench is a **uvm-gen environment** (`<ip>_verif/` — generated
+by `uvm-gen/`, see its README): all tool access goes through the generated
+`sim/Makefile`. Throughout this pack, `dv <verb>` is the ABSTRACT golden
+verb; in this infrastructure it resolves per this table (run from
+`<ip>_verif/sim/`, or prefix `make -C <ip>_verif/sim`):
+
+| Golden verb | This infrastructure |
+|---|---|
+| `dv compile <ip>` | `make compile` (elab-only, stub DUT ok) |
+| `dv sim <ip> <test> --seed N` | `make run TEST=<test> SEED=N` |
+| `dv sim ... --waves` | `make waves TEST=<test>` |
+| `dv sim ... --verbosity UVM_HIGH` | `make run ... VERBOSITY=UVM_HIGH` |
+| plusargs | `make run ... PLUSARGS='+X +Y=2'` |
+| configuration select / all-passive | `make run ... CFG=../cfg/<cfg>.yaml` / `PASSIVE=1` |
+| `dv regress <ip>` | `make regress` (vManager vsif); status: `make matrix` |
+| `dv log first-error <log>` | `python3 .github/skills/log-triage/scripts/triage_log.py sim/logs/<log>` |
+| `dv log grep` | targeted `grep` on `sim/logs/<log>` |
+| `dv cov report/delta/merge` | not wired by default — say so; never improvise IMC calls |
+| `dv lint --diff` | `python3 .github/skills/deprecation-lint/scripts/lint.py <tb paths>` |
+| `dv cockpit <ip>` | `python3 .github/skills/verif-cockpit/scripts/cockpit.py` (config: `cockpit.ini`) |
+
+Verdict contract in this flow: `make run` exits non-zero on any failure;
+`sim/scripts/cfg_tool.py` prints a one-line `cfg_tool: PASS/FAIL` verdict,
+every run prints the `[UVM_GEN_CFG]` config-signature banner, and appends a
+machine-readable record to `verif_matrix.yaml` (config_name, param hash,
+test, seed, result, UVM error/fatal counts, date, git rev). Quote the matrix
+record or the `--- UVM Report Summary ---` block as your verdict. Do not
+open raw simulation logs wholesale — they are too large; use the triage
+script / targeted grep.
+
+Teams layering a `dv` wrapper on top of this Makefile: prefer the wrapper
+(JSON verdicts replace the equivalents above) and keep
+`.github/skills/dv-wrapper/SKILL.md` current per the ask-don't-guess
+protocol below.
 
 ## Hard rules
 1. NEVER modify anything under `*/rtl/` — DUT source is read-only.
@@ -21,10 +47,12 @@ too large. Use `dv log first-error` / `dv log grep` for log access.
    editing or disabling assertions, adding coverage exclusions or waivers.
    If a checker seems wrong, say so and stop — a human decides.
 3. Reproduce a failure with the SAME seed before proposing any hypothesis.
-4. A test only counts as passing when the sim verdict shows
-   `uvm_fatal == 0 && uvm_error == 0`, the end-of-test marker is present,
-   AND your change introduces zero new `UVM_WARNING`s (compare against the
-   baseline run). Warning-noisy code is not clean code.
+4. A test only counts as passing when the UVM report summary shows
+   `UVM_ERROR : 0` and `UVM_FATAL : 0` with the `** UVM TEST PASSED **`
+   end-of-test marker present (matrix record `result: pass` / wrapper
+   verdict `uvm_fatal == 0 && uvm_error == 0`), AND your change introduces
+   zero new `UVM_WARNING`s (compare against the baseline run).
+   Warning-noisy code is not clean code.
 5. Never mark a task complete on the basis of code that has not been
    compiled and simulated in this session.
 6. Branch naming: `agent/<workflow>/<short-desc>`. Commit messages reference
@@ -33,9 +61,12 @@ too large. Use `dv log first-error` / `dv log grep` for log access.
 ## The DUT evolves constantly — rules for a moving target
 
 1. PIN THE REVISION. At session start, record the RTL revision you are
-   working against (`git -C <ip>/rtl log -1 --format=%h` or the
-   wrapper's revision field if it has one). Every session report states
-   it. Results are meaningless without it.
+   working against. The RTL lives OUTSIDE the generated env — its filelist
+   is referenced by `sim/dut.f`; record `git -C <rtl_dir> log -1
+   --format=%h` there (or the design drop tag), plus the env's own
+   revision. While the DUT is the generated stub (fresh env, dut.f not yet
+   flipped), say so — "stub DUT" is the revision statement. Every session
+   report states it; results are meaningless without it.
 2. BASELINE BEFORE WORK. Before implementing anything, run the smoke (or
    the relevant existing test) at the current revision. If it already
    fails, that is PRE-EXISTING: report it and stop or route to
@@ -70,7 +101,7 @@ Every session ends with a standard report containing, in order:
 6. Honest limitations: what this session did NOT verify
 
 Additionally, write a machine-readable sidecar of the report to
-`<ip>/dv/status/session_<date>.json`:
+`<ip>_verif/dv/status/session_<date>.json`:
 `{agent, gate, status: awaiting_approval|awaiting_signoff|blocked|done,
 open_questions[], handoffs[], rtl_rev}` — the local cockpit
 (`dv cockpit <ip>`, verif-cockpit skill) renders pending human decisions
@@ -79,30 +110,31 @@ from these sidecars.
 If a required evidence element cannot be produced, say so in section 6 —
 never substitute prose reassurance for a missing verdict.
 
-## When you don't know how `dv` works — ask, never guess
+## When you don't know how the flow works — ask, never guess
 
-The `dv` wrapper is team-built; its exact flags, verdict fields, and
-behaviors may differ from any example you have seen. Guessed `dv`
-invocations and misread verdicts corrupt sessions silently. Resolution
-order when uncertain about ANY `dv` semantics (a flag, a verdict field,
-exit behavior, where runs land, how plusargs pass through):
+Flow semantics you are not certain about (a make variable, where runs
+land, how plusargs pass through, seed behavior, a wrapper flag or verdict
+field) corrupt sessions silently when guessed. Resolution order:
 
-1. Consult the `dv-wrapper` skill — the team's live reference. If it
-   answers, proceed.
-2. Probe the tool read-only: `dv --help`, `dv <subcmd> --help`. Help
-   output wins over any documentation.
+1. Consult the `dv-wrapper` skill — the live flow reference. Its
+   "no-wrapper default" section documents this repo's uvm-gen make flow
+   as confirmed fact; wrapper sections cover teams that layered a `dv`
+   CLI on top. If it answers, proceed.
+2. Probe read-only: `make -C <ip>_verif/sim help`, and for a wrapper
+   `dv --help` / `dv <subcmd> --help`. Tool output wins over any
+   documentation. (`sim/Makefile` itself is readable ground truth.)
 3. Still unknown → ASK THE ENGINEER with #tool:vscode/askQuestions: one
-   focused question, concrete options where possible ("does `dv sim` take
-   plusargs via --plusargs or positionally after the test name?"). Never
-   proceed on an assumption about wrapper behavior.
+   focused question, concrete options where possible. Never proceed on an
+   assumption about flow behavior.
 4. PERSIST the answer: append it to the matching section of
    `.github/skills/dv-wrapper/SKILL.md` (marked `[learned <date>]`) so no
    session asks this twice. This skill file is the one `.github/` file
-   agents may edit — factual wrapper knowledge only, never rules.
+   agents may edit — factual flow knowledge only, never rules.
 
-The same protocol applies to an UNPARSEABLE verdict: if `dv` output does
-not match the expected JSON shape, stop, show the raw output, and ask —
-do not improvise a parse.
+The same protocol applies to an UNPARSEABLE result: if a run's output
+matches neither the uvm-gen verdict shape (cfg_tool line + UVM summary +
+matrix record) nor the wrapper's JSON, stop, show the raw output, and ask
+— do not improvise a parse.
 
 ## Negative (checker-qualification) tests
 
@@ -123,7 +155,22 @@ Follow the team UVM coding standard (see the `uvm-coding-standard` skill):
 factory registration mandatory, configuration through nested config objects,
 no `#delay` in sequences, every covergroup bin maps to a vplan reference.
 
-## Where things live
-- Per-IP context:      `<ip>/docs/CLAUDE.md` (read it before working on an IP)
-- Vplans:              `<ip>/docs/vplan.md`
+## Where things live (uvm-gen environment layout)
+- Env root `<ip>_verif/`:
+  - `agents/<name>_agent/` — interface, seq_item, sequencer, driver,
+    monitor, agent cfg, agent, base sequence, package (one dir per
+    interface; stimulus items/base sequences live here)
+  - `env/` — `<ip>_env`, `<ip>_env_cfg`, `<ip>_scoreboard`,
+    `<ip>_<name>_cov` coverage subscribers, `<ip>_vsequencer`, RAL
+    (`<ip>_reg_block`/`_reg_adapter`), Cadence VIP wrappers
+  - `seq_lib/` — virtual sequences; `tests/` — test classes
+  - `tb/` — `tb_top.sv` + generated DUT stub; `sim/` — Makefile,
+    `.f` filelists, vsif, `scripts/cfg_tool.py`; logs in `sim/logs/`
+  - `cfg/` — one YAML per configuration; `verif_matrix.yaml` — append-only
+    run records (sign-off evidence)
+- Per-IP context:      `docs/CLAUDE.md` (read it before working on an IP)
+- Vplans:              `docs/vplan.md`
 - Methodology guides:  `docs/methodology/`
+- Negative tests/chkq: `dv/tests/negative/`; regression lists `dv/lists/`;
+  session sidecars `dv/status/`; exclusions `dv/cov/exclusion_requests.md`
+- RTL: outside the env, referenced by `sim/dut.f` — read-only as ever.

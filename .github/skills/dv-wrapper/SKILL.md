@@ -1,16 +1,55 @@
 ---
 name: dv-wrapper
-description: Live reference for the team's dv wrapper CLI — commands, verdict schemas, exit codes, run directories. Consult BEFORE any dv invocation you are not certain about; append learned answers per the ask-don't-guess protocol.
+description: Live reference for the simulation flow — the uvm-gen make flow (no-wrapper default, confirmed facts) and the optional team dv wrapper CLI (commands, verdict schemas, exit codes, run directories). Consult BEFORE any flow invocation you are not certain about; append learned answers per the ask-don't-guess protocol.
 ---
 
-# `dv` Wrapper — Live Reference
+# Flow Reference — uvm-gen make flow (default) / `dv` wrapper (optional)
 
 This file is a LIVING document with a special status: it is the only
-`.github/` file agents may edit, and only to append FACTS about wrapper
+`.github/` file agents may edit, and only to append FACTS about flow
 behavior (marked `[learned <date>]` or `[confirmed <date>]`). Rules and
 policy never live here. Sections marked **UNKNOWN — ASK** are unresolved:
 follow the protocol in copilot-instructions.md (skill → `--help` → ask
 the engineer via #tool:vscode/askQuestions → append the answer here).
+
+## No-wrapper default: the uvm-gen environment flow [confirmed]
+
+This repository's testbench infrastructure is uvm-gen-generated
+(`<ip>_verif/sim/Makefile`, single-step `xrun -uvmhome CDNS-1.2`). Unless a
+team-built `dv` CLI is on PATH, these facts are resolved — no need to ask:
+
+- Invocation (from `<ip>_verif/sim/`): `make compile` | `make run
+  TEST=<test> [SEED=n] [VERBOSITY=L] [CFG=../cfg/<cfg>.yaml] [PASSIVE=1]`
+  | `make waves TEST=<test>` | `make regress` | `make matrix` | `make clean`.
+- Plusargs: `make run ... PLUSARGS='+CHKQ_ENABLE +uvm_set_verbosity=...'`.
+  Extra xrun flags: `XRUN_OPTS='-access +rwc'` (chkq builds). Extra
+  filelists: `FILELISTS+='-f extra.f'` (each domain keeps its own -f).
+- Seeds: `SEED=<n>` → `xrun -svseed <n>` (default 1). `SEED=random` lets
+  xrun pick; `sim/scripts/cfg_tool.py` recovers the used seed from the
+  log into the `verif_matrix.yaml` record.
+- Verdict: exit status (non-zero = fail) + one-line `cfg_tool: PASS/FAIL`
+  + `[UVM_GEN_CFG]` config-signature banner + appended `verif_matrix.yaml`
+  record. No JSON on stdout; the matrix record is the machine-readable
+  verdict.
+- Run artifacts: logs `sim/logs/<test>_<config>_s<seed>.log`; per-config
+  work library `sim/xcelium.d_<config>` (regressions redirect per run via
+  `XMLIBDIR=`); waves `sim/waves.shm`. `verif_matrix.yaml` is append-only
+  history — never delete or rewrite it.
+- Regression: one vsif per configuration (`sim/<ip>_<config>.vsif`,
+  session `<ip>_<config>`), launched by `make regress` through vManager;
+  every vsif run goes back through `make run` (single source of truth).
+- Coverage (`dv cov` equivalents): NOT wired by default — state this
+  instead of improvising IMC calls; record the site's coverage flow here
+  when it lands.
+- Log access: `python3 .github/skills/log-triage/scripts/triage_log.py
+  sim/logs/<log>` (first-error JSON); targeted `grep` otherwise.
+- chkq: compile the kit via the commented block in `sim/tb.f`; run with
+  `PLUSARGS='+CHKQ_ENABLE' XRUN_OPTS='-access +rwc'`; coverage stays off.
+- Environment setup: whatever makes `xrun` resolve on the host (module
+  load etc.) — the Makefile does not source tool environments.
+
+Everything below concerns an OPTIONAL team-built `dv` wrapper layered on
+top of this flow.
 
 ## Contract basics (assumed until contradicted by --help or the engineer)
 - Every subcommand prints one JSON verdict on stdout; full artifacts go

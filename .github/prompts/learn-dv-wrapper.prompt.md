@@ -3,9 +3,16 @@ agent: 'agent'
 tools: ['search', 'execute/runInTerminal', 'execute/getTerminalOutput', 'read/terminalLastCommand', 'read/terminalSelection', 'edit', 'vscode/askQuestions']
 description: 'Interview session: resolve the UNKNOWNs in the dv-wrapper skill'
 ---
-Onboarding session for the dv wrapper knowledge base
+Onboarding session for the flow knowledge base
 (.github/skills/dv-wrapper/SKILL.md).
 
+0. First check whether a team `dv` wrapper exists (`command -v dv`). If
+   NOT: this repo runs on the uvm-gen make flow, whose facts are already
+   recorded in the skill's "No-wrapper default" section — there is
+   nothing to interview. Say so, and offer instead to record any
+   site-specific facts the engineer wants persisted (coverage flow,
+   regression farm, module loads) in the Learned facts log. Continue
+   below only if the wrapper exists.
 1. Read the skill file and list every section marked UNKNOWN.
 2. Resolve as many as possible READ-ONLY: `dv --help`, `dv <subcmd>
    --help` for each subcommand. Do not run compiles or sims unless I

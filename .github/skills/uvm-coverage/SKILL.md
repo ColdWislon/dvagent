@@ -39,7 +39,7 @@ covergroups. Every coverpoint traces back to a vPlan feature.
   stimulus code (team standard).
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Covergroups sample on traffic; hits appear in IMC.
 - [ ] `illegal_bins`/`ignore_bins` defined; no spurious illegal hits on legal runs.
 - [ ] Every coverpoint/cross `VP-xxx`-referenced and resolvable.

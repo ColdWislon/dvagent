@@ -7,8 +7,9 @@ description: Hole classification taxonomy, exclusion policy, and closure evidenc
 
 ## Hole taxonomy (mandatory classification before action)
 - **A — reachable, stimulus gap**: constrained-random can reach it with
-  constraint/sequence work. Action: stimulus improvement, prove with
-  `dv cov delta`.
+  constraint/sequence work. Action: stimulus improvement, prove with a
+  coverage delta (`dv cov delta` / the site's IMC recipe — this skill is
+  inert until a coverage flow is wired; see the dv-wrapper skill).
 - **B — reachable, needs directed**: a corner requiring explicit setup
   randomization won't plausibly produce. Action: small directed sequence,
   still through interfaces, still judged by existing checkers.
@@ -29,7 +30,8 @@ description: Hole classification taxonomy, exclusion policy, and closure evidenc
   decision for the program level, not an exclusion — route it upward.
 
 ## Closure evidence rules
-- Delta claims come from `dv cov delta` verdicts, labeled targeted-run;
+- Delta claims come from coverage-delta evidence (`dv cov delta` verdicts
+  or the site's IMC report), labeled targeted-run;
   the merged CI database is the binding number.
 - A hole is closed by stimulus that exercises the INTENT (vplan text),
   not by any means that touches the bin: no forces, no config backdoors,

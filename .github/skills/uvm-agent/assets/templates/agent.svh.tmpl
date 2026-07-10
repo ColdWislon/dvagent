@@ -11,7 +11,7 @@ class <proto>_agent extends uvm_agent;
   <proto>_driver                    m_driver;
   <proto>_monitor                   m_monitor;
   uvm_sequencer #(<proto>_item)     m_sequencer;
-  <proto>_agent_cfg                 m_cfg;
+  <proto>_agent_cfg                 cfg;
 
   function new(string name, uvm_component parent);
     super.new(name, parent);
@@ -20,7 +20,7 @@ class <proto>_agent extends uvm_agent;
 
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
-    if (!uvm_config_db#(<proto>_agent_cfg)::get(this, "", "cfg", m_cfg))
+    if (cfg == null && !uvm_config_db#(<proto>_agent_cfg)::get(this, "", "cfg", cfg))
       `uvm_fatal(get_type_name(), "no agent cfg")
 
     m_monitor = <proto>_monitor::type_id::create("m_monitor", this);

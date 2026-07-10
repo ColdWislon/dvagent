@@ -72,25 +72,29 @@ anything above is ambiguous.
 
 ## Definition of Done
 
-- [ ] `dv compile <ip>` verdict clean; zero new warnings vs baseline (never call xrun directly).
+- [ ] Compile clean (`make compile`; wrapper: `dv compile <ip>`); zero new warnings vs baseline — never invoke xrun ad hoc.
 - [ ] Lints clean against the house ruleset.
 - [ ] Registered in the vsif and visible in a vManager session.
 - [ ] `// VP-xxx` tag present and resolves to a real vPlan feature.
-- [ ] Passing `dv sim` verdicts on >=3 listed seeds: 0 `UVM_ERROR`/`UVM_FATAL`,
-      end-of-test marker present, zero new `UVM_WARNING`s vs. baseline.
+- [ ] Passing sim verdicts on >=3 listed seeds (`make run TEST=<t> SEED=<n>`;
+      wrapper: `dv sim`): 0 `UVM_ERROR`/`UVM_FATAL`, `** UVM TEST PASSED **`
+      marker present, zero new `UVM_WARNING`s vs. baseline.
 - [ ] Factory `create` used for the vseq and any overridable component
       (no direct `new`).
 - [ ] No `#` delays; exactly one symmetric objection pair.
 
 ## Dev loop (single test)
 
-All tool access goes through the team `dv` wrapper -- never call `xrun`,
-`imc`, or vManager directly (see the `dv-wrapper` skill for verdict fields):
+All tool access goes through the environment's `sim/Makefile` (or the
+team `dv` wrapper where one exists — see the `dv-wrapper` skill):
 
 ```bash
-dv compile <ip>
-dv sim <ip> <feat>_test --seed <N>     # verdict JSON on stdout
-dv log first-error <logfile>           # if the verdict points at a log
+cd <ip>_verif/sim
+make compile
+make run TEST=<feat>_test SEED=<N>     # exit status + cfg_tool PASS/FAIL +
+                                       # verif_matrix.yaml record = the verdict
+python3 ../../.github/skills/log-triage/scripts/triage_log.py logs/<log>
+# wrapper equivalents: dv compile <ip> / dv sim ... --seed N / dv log first-error
 ```
 
 A pass means `uvm_fatal == 0 && uvm_error == 0`, end-of-test marker present,

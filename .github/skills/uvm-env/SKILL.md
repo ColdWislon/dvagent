@@ -22,11 +22,14 @@ logic so it can be reused block -> subsystem -> SoC.
 4. Virtual sequencer type and its sub-sequencer handles.
 
 ## Procedure
-1. Create `<proj>_env.svh` from `assets/templates/env.svh.tmpl`.
+1. Create `<proj>_env.sv` (env/ directory, `` `include``d by
+   `<proj>_env_pkg.sv`) from `assets/templates/env.svh.tmpl`.
 2. In `build_phase`: build every agent, the scoreboard, coverage, and the
    virtual sequencer from the env config object.
 3. In `connect_phase`: connect each `agent.ap` to the scoreboard and coverage
-   exports, and assign each `m_vsequencer.m_<role>_seqr = m_<role>_agent.m_sequencer`.
+   exports, and assign each `vsequencer.<name>_sqr` from
+   `<name>_agent.m_sequencer` — null when that agent is passive (the
+   generated `<proj>_env.sv` shows the exact pattern).
 4. Keep the env free of sequences, delays, and DUT references.
 
 ## Hard rules (never violate)
@@ -36,7 +39,7 @@ logic so it can be reused block -> subsystem -> SoC.
 - No stimulus, no `#` delay, no test-specific behaviour in the env.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] TLM fully connected (every `ap` -> at least one export; no dangling).
 - [ ] Virtual sequencer wired to all active agent sequencers.
 - [ ] Config-driven and reuse-ready (instantiable at a higher level unchanged).

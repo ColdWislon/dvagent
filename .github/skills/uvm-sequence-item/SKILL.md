@@ -33,7 +33,7 @@ convenience printers. No components, no logic, no interface access.
 - Every legality rule is a named `constraint`, not hidden in a sequence.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] `randomize()` succeeds and only produces legal values.
 - [ ] `convert2string` prints all fields; `copy`/`compare` behave correctly.
 - [ ] No interface / timing / logic beyond data + constraints + helpers.

@@ -7,7 +7,8 @@ description: Generate the local DV cockpit — a static HTML page giving one IP'
 
 One command, one self-contained HTML page per IP:
 
-    dv cockpit <ip>                # intended wrapper subcommand
+    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>   # uvm-gen default
+    dv cockpit <ip>                # wrapper subcommand, where wired
     # backend (works today, no wrapper change needed):
     python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>
     python3 .github/skills/verif-cockpit/scripts/cockpit.py --all   # + index.html
@@ -35,7 +36,8 @@ Primary: `<ip>/dv/status/` — tools drop their latest verdicts there:
 copilot-instructions evidence contract; schema: `{agent, gate, status:
 awaiting_approval|awaiting_signoff|blocked|done, open_questions[], handoffs[],
 rtl_rev}`).
-Direct scans: `// PLACEHOLDER-CHECK` and `VP-xxx` tags in dv sources,
+Direct scans: `// PLACEHOLDER-CHECK` and `VP-xxx` tags in TB sources
+(cockpit.ini `scan_dirs` — uvm-gen envs scan dv,agents,env,seq_lib,tests,tb),
 `docs/vplan.md` (tolerant), `dv/cov/exclusion_requests.md`.
 
 ## Configuration — the tool abstraction
@@ -48,8 +50,8 @@ stale_hours); `[tool]` is team policy and stays versioned.
 
 ## How to use it
 
-**Daily (engineer).** Run `dv cockpit <ip>` each morning (or after a batch of
-`dv sim` runs) and read the **Pending human** hero first — it is the list of
+**Daily (engineer).** Run the cockpit each morning (or after a batch of
+sim runs) and read the **Pending human** hero first — it is the list of
 things that block the flow until *you* act: approve a Gate-1 plan, sign off a
 checker, rule on an exclusion, answer a session's open question, or resolve a
 `PLACEHOLDER-CHECK`. If that panel is empty, the flow is unblocked; skim the

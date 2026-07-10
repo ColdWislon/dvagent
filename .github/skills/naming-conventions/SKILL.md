@@ -16,17 +16,22 @@ Subordinate to the team `uvm-coding-standard` skill: where the two differ,
 Apply these when authoring; check them when reviewing. `<proj>`/`<proto>` are
 the project and protocol prefixes; adapt to the house prefix.
 
+**Living reference**: this repo's environments are uvm-gen-generated — the
+code under `agents/<name>_agent/` and `env/` IS the canonical instance of
+these conventions. Where a generic row below and the generated shape could
+be read differently, match the generated code.
+
 ## Ruleset
 
 | Element | Convention | Example |
 |---|---|---|
 | Class | `<proto>_<role>` | `axi_master_agent` |
-| File | snake_case = class name, one class per file | `axi_master_agent.svh` |
-| Component instance | `m_<role>` | `m_master_agent`, `m_driver` |
-| Sequencer handle | `m_<role>_seqr` | `m_master_seqr` |
+| File | snake_case = class name, one class per file (`.sv` in this infra, `` `include``d by the layer package) | `my_ip_ctrl_agent.sv` |
+| Component instance | agent internals `m_<role>`; env-level children plain | `m_driver`, `m_monitor`; `ctrl_agent`, `scoreboard`, `vsequencer` |
+| vsequencer handle | `<name>_sqr` (null when the agent is passive) | `ctrl_sqr`, `apb0_sqr` |
 | Virtual interface | `<proto>_if` | `axi_if` |
-| Config object | `<x>_cfg` (`<proto>_agent_cfg`, `<proj>_env_cfg`) | `axi_agent_cfg` |
-| Transaction | `<proto>_item` | `axi_item` |
+| Config object | `<x>_cfg` classes (`<proj>_<if>_cfg`, `<proj>_env_cfg`); handle named `cfg` | `my_ip_ctrl_cfg`, `my_ip_env_cfg` |
+| Transaction | `<proj>_<if>_seq_item` | `my_ip_ctrl_seq_item` |
 | Sequence | `<feat>_seq` | `burst_wr_seq` |
 | Virtual sequence | `<feat>_vseq` | `smoke_vseq` |
 | Test | `<feat>_test` | `burst_wr_test` |
@@ -40,7 +45,9 @@ the project and protocol prefixes; adapt to the house prefix.
 - File name must equal the class name; one primary class per file (tightly
   coupled helpers may share a file).
 - No abbreviations outside the approved protocol prefixes.
-- Handles are prefixed `m_`; local variables are not.
+- Handles inside agents are prefixed `m_` (`m_driver`); env-level children,
+  vsequencer `<name>_sqr` handles, and `cfg` handles are plain — exactly as
+  the generated code does it. Local variables are never `m_`-prefixed.
 - Check IDs are API: chkq negative tests and triage bucketing key on them.
   One stable, unique ID per distinct check (`SCBD_DATA_CMP`, `SCBD_ORDER`);
   renaming one is a breaking change (chkq list updated in the same MR).

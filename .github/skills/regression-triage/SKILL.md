@@ -18,8 +18,8 @@ typically explains most of a red regression.
 1. **Collect** — from the Jenkins artifacts / verdict archive (vManager session
    data surfaces there): per-run status, test name, seed, and log path.
 2. **Signature** — CI-side, run `log-triage/scripts/triage_log.py` over all
-   failing logs to get one normalized signature per failure (in a live agent
-   session, `dv log first-error` per log gives the same first-error fields).
+   failing logs to get one normalized signature per failure (same script
+   per log in a live session; wrapper: `dv log first-error`).
 3. **Cluster** — group by identical signature first; then merge clusters whose
    signatures differ only in the UVM ID's instance path or in masked values.
    Stimulus metadata (test name, seed, key knobs) is a secondary axis: one
@@ -33,7 +33,8 @@ typically explains most of a red regression.
    against a stated RTL revision (pin it in the report).
 6. **Dispatch** — per cluster: representative failing run (test + seed + log),
    verdict, suspected layer, owner, and the exact rerun command
-   (`dv sim <ip> <t> --seed <s>`).
+   (`make -C <ip>_verif/sim run TEST=<t> SEED=<s> CFG=<cfg>`; wrapper:
+   `dv sim <ip> <t> --seed <s>`).
 
 ## Rules
 - One representative run per cluster is debugged, not every member.

@@ -41,7 +41,7 @@ hand-write only small maps.
 - Backdoor via `hdl_path`, never string-poked ad hoc.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Adapter round-trips (read-after-write via frontdoor matches).
 - [ ] Predictor updates the mirror from observed bus traffic.
 - [ ] Built-in `hw_reset` and `bit_bash` sequences pass.

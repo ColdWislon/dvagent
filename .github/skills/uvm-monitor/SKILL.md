@@ -33,7 +33,7 @@ publishes them on an analysis port. It never drives and never checks.
 - Reset-aware: discards partial transactions on reset.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Reconstructs correct transactions from pin activity.
 - [ ] Publishes every completed transaction on `ap`.
 - [ ] Passive under reset (no partial/spurious transactions emitted).

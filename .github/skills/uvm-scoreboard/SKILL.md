@@ -56,7 +56,7 @@ DUT actually saw also catches driver bugs.
   rule; see the `dv-checker-writer` agent protocol) -- a human owns that.
 
 ## Definition of Done
-- [ ] `dv compile <ip>` verdict clean (never call xrun directly).
+- [ ] Compile clean: `make compile` (wrapper: `dv compile <ip>`) — never invoke xrun ad hoc.
 - [ ] Detects an injected mismatch (fails when it should).
 - [ ] Reports leftover/unmatched transactions at end of test.
 - [ ] No false pass on zero traffic (checks that traffic occurred).

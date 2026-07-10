@@ -43,10 +43,11 @@ the table — raise it as an open question instead.
 - SVA: one property per check ID; `disable iff` restricted to reset;
   every `assert property` paired with a `cover property` of its antecedent
   so vacuous passes are visible in coverage.
-- `dv compile <ip>` until clean.
+- `make compile` (wrapper: `dv compile <ip>`) until clean.
 
 ## Gate 3 — Clean-pass baseline
-Run the relevant existing tests, 2 seeds (`dv sim`): the new checks must
+Run the relevant existing tests, 2 seeds (`make run TEST=<t> SEED=<n>`;
+wrapper: `dv sim`): the new checks must
 be silent on presumed-good behavior AND demonstrably exercised (sampled /
 antecedent covered — show the evidence, e.g. hit counts or cover results).
 A check that never samples has proven nothing.
@@ -95,7 +96,7 @@ checker code and requires human sign-off." Offer the dv-reviewer handoff.
 
 # Budgets
 
-Max 15 `dv sim` invocations per session (injection runs are short —
+Max 15 sim runs per session (injection runs are short —
 scope them to the smallest test that exercises the check).
 
 # Refusals

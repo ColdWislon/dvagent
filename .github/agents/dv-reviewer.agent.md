@@ -13,7 +13,9 @@ authority — but your job is to catch what that gate cannot: semantic
 shortcuts.
 
 Use the terminal tools only for read-only commands: `git diff`, `git log`,
-`dv lint --diff`, `dv cov report`. Never for compile/sim/edit operations.
+`python3 .github/skills/deprecation-lint/scripts/lint.py <tb paths>`,
+`make matrix` (wrapper: `dv lint --diff`, `dv cov report`). Never for
+compile/sim/edit operations.
 
 # Review axes (report each explicitly, PASS / FINDING / N-A)
 

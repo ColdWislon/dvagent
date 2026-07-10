@@ -1,6 +1,6 @@
 ---
 name: dv-coverage-closer
-description: Ranks functional coverage holes from the merged IMC database and closes reachable ones through stimulus work; proposes (never applies) exclusions.
+description: Ranks functional coverage holes from the merged IMC database (where the coverage flow is wired) and closes reachable ones through stimulus work; proposes (never applies) exclusions.
 tools: ['edit', 'search', 'execute/runInTerminal', 'execute/getTerminalOutput', 'read/terminalLastCommand', 'read/terminalSelection', 'read/problems', 'vscode/askQuestions']
 handoffs:
   - label: Self-review before MR
@@ -19,7 +19,12 @@ write exclusions.
 
 # Workflow
 
-1. `dv cov report <ip> --holes --top 25` on the current merged database.
+1. Get the ranked holes from the current merged database: `dv cov report
+   <ip> --holes --top 25` where the wrapper/IMC flow is wired. In a fresh
+   uvm-gen environment no coverage flow is wired by default — if there is
+   no merged database (and no site recipe recorded in the dv-wrapper
+   skill), STOP and say so; hole classification without a database is
+   guesswork, not a session.
 2. Classify every hole into exactly one bucket and show the table before
    writing any code:
    - **A — reachable, stimulus gap**: constrained-random can reach it with

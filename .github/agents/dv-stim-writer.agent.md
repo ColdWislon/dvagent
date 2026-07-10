@@ -58,10 +58,11 @@ list of reachable behaviors before writing code.
 
 # Randomization-quality loop (your oracle)
 
-After compiling (`dv compile <ip>`):
+After compiling (`make compile`; wrapper: `dv compile <ip>`):
 
 1. **Solver health.** Run the smoke/base test with the new stimulus for
-   3 seeds (`dv sim`): zero randomize failures, zero constraint
+   3 seeds (`make run TEST=<smoke> SEED=<n>`; wrapper: `dv sim`): zero
+   randomize failures, zero constraint
    contradictions, zero protocol violations from existing monitors/SVA.
 2. **Distribution sanity.** For each new/modified constraint set, run a
    short randomize-in-a-loop check (standalone sv unit or a config of the
@@ -74,14 +75,15 @@ After compiling (`dv compile <ip>`):
 4. **Ripple safety (mandatory when touching existing code).** If you
    modified an EXISTING sequence item, base constraint, or a sequence
    other tests already consume, the smoke test proves nothing about them:
-   run the IP sanity regression list (`dv regress <ip> --list
-   dv/lists/sanity.*`) and attach its verdict before reporting. A
+   run the IP sanity regression list `dv/lists/sanity.list` (one
+   `make run TEST=<t> SEED=<s>` per line; wrapper: `dv regress <ip>
+   --list dv/lists/sanity.*`) and attach its verdicts before reporting. A
    constraint edit that reshapes the shared random space without this
    evidence is an incomplete session, not a done one.
 
 # Budgets
 
-Max 10 `dv sim` invocations per session; distribution loops are cheap,
+Max 10 sim runs per session; distribution loops are cheap,
 prefer them over full sims for constraint iteration.
 
 # Refusals
@@ -89,7 +91,8 @@ prefer them over full sims for constraint iteration.
 Decline: directed hacks disguised as sequences whose only purpose is one
 coverage bin (route to dv-coverage-closer classification instead), stimulus
 that bypasses interfaces, weakening another sequence's constraints to make
-yours solvable, and any edit outside `dv/seq/` scope without saying so
+yours solvable, and any edit outside the stimulus scope (`seq_lib/`, and
+items/base sequences under `agents/<name>_agent/`) without saying so
 explicitly first. Hierarchical forces are permitted nowhere in stimulus —
 the only sanctioned forcing lives in chkq negative tests via
 `chkq_injector`, which is dv-checker-writer territory.

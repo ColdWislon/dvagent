@@ -84,4 +84,4 @@ conflict, THIS file wins.
 ## General
 - No `$display` in class-based code — UVM reporting only.
 - No dead code committed (`// TODO remove`, commented-out blocks).
-- Lint (`dv lint --diff`) clean before any MR.
+- Lint clean before any MR: `python3 .github/skills/deprecation-lint/scripts/lint.py <tb paths>` (wrapper: `dv lint --diff`).

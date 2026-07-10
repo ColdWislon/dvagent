@@ -87,18 +87,22 @@ the same folders work in other compatible agents.
 ## Adapt before commit
 
 Templates use placeholders: `<proj>`/`<PROJ>` (project prefix), `<proto>`
-(protocol), `<feat>`, `<blk>`. Handle names (`m_env`, `m_vsequencer`,
-`m_<role>_seqr`, `vif`) are conventions — match them to your base env's actual
-handles. All tool commands go through the team `dv` wrapper (`dv compile`,
-`dv sim`, `dv cov`, `dv log first-error`) -- never raw `xrun`/`imc`/vManager;
-vsif snippets are repo files the CI flow consumes.
+(protocol), `<feat>`, `<blk>`. Handle names are conventions — match them to
+the environment's ACTUAL handles: in this repo's uvm-gen environments that
+means agent internals `m_driver`/`m_monitor`/`m_sequencer`, env-level
+children plain (`<name>_agent`, `scoreboard`, `vsequencer`, `<name>_cov`),
+vsequencer handles `<name>_sqr`, config handles `cfg`. All tool commands go
+through the environment's `sim/Makefile` (`make compile`, `make run
+TEST=... SEED=...`) or the team `dv` wrapper where one exists — never raw
+`xrun`/`imc`/vManager; vsif files live under `sim/`, one per configuration.
 
 ## Integration with the copilot-dv-agents pack
 
 This skill pack is aligned with (and subordinate to, where they overlap) the
 team's `copilot-dv-agents` repo:
 
-- **Law of the land**: `.github/copilot-instructions.md` (dv wrapper golden
+- **Law of the land**: `.github/copilot-instructions.md` (golden-verb table
+  — uvm-gen make flow, optional dv wrapper —,
   commands, never-weaken-checkers, evidence contract, moving-DUT rules) and the
   team `uvm-coding-standard` skill override anything here on conflict. The
   three law skills in this pack (`naming-conventions`, `phasing-check`,
