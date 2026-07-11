@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-cockpit.py -- local verification cockpit (verif-cockpit skill).
+dashboard.py -- local verification dashboard (verif-dashboard skill).
 
-Generates a self-contained static HTML page ("cockpit") for one IP -- or, with
+Generates a self-contained static HTML page ("dashboard") for one IP -- or, with
 --all, one page per IP plus an index -- from artifacts already present in the
 engineer's checkout. Python stdlib only. No server, no JS dependencies
 (collapsible panels use <details>/<summary>).
@@ -17,14 +17,14 @@ Data sources (hybrid contract):
     `<ip>/docs/vplan.md` item ids (tolerant parse)
 
 Tool abstraction: every Xcelium-specific location/pattern lives in the [tool]
-section of cockpit.ini (repo root). Absent file = built-in xcelium defaults.
+section of dashboard.ini (repo root). Absent file = built-in xcelium defaults.
 Missing data is a rendered state ("no data"), never an error.
 
 Usage:
-  python3 cockpit.py <ip_path> [--out cockpit.html] [--root REPO] [--config INI]
-  python3 cockpit.py --all [--root REPO]        # per-IP pages + index.html
+  python3 dashboard.py <ip_path> [--out dashboard.html] [--root REPO] [--config INI]
+  python3 dashboard.py --all [--root REPO]        # per-IP pages + index.html
 
-Intended invocation for engineers: `dv cockpit <ip>` (wrapper wiring -- see the
+Intended invocation for engineers: `dv dashboard <ip>` (wrapper wiring -- see the
 dv-wrapper skill). This is a HUMAN tool: agents have no reason to run it.
 """
 import argparse
@@ -42,7 +42,7 @@ import time
 # --------------------------------------------------------------------------- #
 DEFAULTS = {
     "tool": {
-        # Xcelium/dv-flow profile -- override in cockpit.ini for another stack
+        # Xcelium/dv-flow profile -- override in dashboard.ini for another stack
         "name":            "xcelium",
         "status_dir":      "dv/status",            # verdict drop dir (contract)
         "review_json":     "review.json",
@@ -58,7 +58,7 @@ DEFAULTS = {
         "ip_glob":         "*/dv",                  # --all discovery: dirs whose parent is an IP
     },
     "display": {
-        "title":        "DV Cockpit",
+        "title":        "DV Dashboard",
         "stale_hours":  "48",
     },
 }
@@ -67,7 +67,7 @@ DEFAULTS = {
 def load_cfg(root, path):
     cfg = configparser.ConfigParser()
     cfg.read_dict(DEFAULTS)
-    ini = path or os.path.join(root, "cockpit.ini")
+    ini = path or os.path.join(root, "dashboard.ini")
     if os.path.isfile(ini):
         cfg.read(ini)
     return cfg
@@ -252,7 +252,7 @@ def render_ip(d, cfg):
     o = ["<!doctype html><html><head><meta charset='utf-8'><title>%s — %s</title>"
          "<style>%s</style></head><body>" % (_esc(cfg.get("display", "title")), _esc(d["ip"]), CSS)]
     o.append("<h1>%s — %s</h1><div class='sub'>tool profile: %s · generated %s · "
-             "regenerate: <code>dv cockpit %s</code></div>"
+             "regenerate: <code>dv dashboard %s</code></div>"
              % (_esc(cfg.get("display", "title")), _esc(d["ip"]),
                 _esc(cfg.get("tool", "name")),
                 time.strftime("%Y-%m-%d %H:%M"), _esc(d["ip"])))
@@ -368,9 +368,9 @@ def render_ip(d, cfg):
         "<li><b>Before an MR</b>: placeholders and lint errors should be 0.</li>"
         "<li><b>STALE / no data</b>: the source JSON is old or was never "
         "produced — re-run the matching <code>dv</code> step and regenerate "
-        "with <code>dv cockpit %s</code>.</li>"
+        "with <code>dv dashboard %s</code>.</li>"
         "<li>Panels feed from <code>%s/</code> verdicts plus live tag scans; "
-        "retarget via <code>cockpit.ini</code> [tool].</li>"
+        "retarget via <code>dashboard.ini</code> [tool].</li>"
         "</ul>") % (_esc(d["ip"]), _esc(cfg.get("tool", "status_dir")))
     panel("How to read this", "?", help_html)
 
@@ -398,11 +398,11 @@ def render_index(items, cfg):
 
 # --------------------------------------------------------------------------- #
 def main():
-    ap = argparse.ArgumentParser(description="local DV cockpit generator")
+    ap = argparse.ArgumentParser(description="local DV dashboard generator")
     ap.add_argument("ip", nargs="?", help="path to the IP directory")
     ap.add_argument("--all", action="store_true", help="all IPs + index page")
     ap.add_argument("--root", default=".", help="repo root (config + discovery)")
-    ap.add_argument("--config", default=None, help="cockpit.ini path")
+    ap.add_argument("--config", default=None, help="dashboard.ini path")
     ap.add_argument("--out", default=None, help="output html (single-IP mode)")
     args = ap.parse_args()
 
@@ -416,7 +416,7 @@ def main():
         items = []
         for ip in ips:
             d = collect(ip, cfg)
-            page = "cockpit_%s.html" % d["ip"]
+            page = "dashboard_%s.html" % d["ip"]
             with open(os.path.join(args.root, page), "w") as fh:
                 fh.write(render_ip(d, cfg))
             items.append({"d": d, "page": page})
@@ -428,9 +428,9 @@ def main():
         return
 
     if not args.ip:
-        sys.exit("usage: cockpit.py <ip_path> | --all")
+        sys.exit("usage: dashboard.py <ip_path> | --all")
     d = collect(args.ip, cfg)
-    out = args.out or os.path.join(args.ip, "cockpit.html")
+    out = args.out or os.path.join(args.ip, "dashboard.html")
     with open(out, "w") as fh:
         fh.write(render_ip(d, cfg))
     print("wrote %s  (pending=%d placeholders=%d clusters=%d)"

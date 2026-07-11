@@ -167,7 +167,7 @@ expects, so a generated env drops straight into that workflow:
   registry, and an opt-in `chkq.f` filelist (functional builds never see it —
   add it with `EXTRA_FILELISTS=` and run with `+CHKQ_ENABLE -access +rwc`);
 * `dv/lists/{chkq,sanity}.list`, `dv/cov/exclusion_requests.md`, `dv/status/`
-  (session/verdict sidecars the local cockpit renders).
+  (session/verdict sidecars the local dashboard renders).
 
 Set `dv_scaffold: false` in the config YAML for a lean standalone env (core
 UVM env + sim flow + `.github` phase kit only, none of the `dv/` or `docs/`

@@ -2,7 +2,7 @@
 
 Everything under this directory makes up the reusable DV template: the
 `uvm-gen` environment generator, the chkq checker-qualification kit, the
-external vplan-drafting kit, the methodology guides, the cockpit config,
+external vplan-drafting kit, the methodology guides, the dashboard config,
 and the engineer-facing `USERGUIDE.md`.
 
 **One deliberate exception:** `.github/` (the Copilot agent pack — agents,

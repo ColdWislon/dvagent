@@ -3,8 +3,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# Cockpit output
-cockpit.html
+# Dashboard output
+dashboard.html
 index.html
 
 # Generated environments created in this workspace manage their own

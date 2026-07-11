@@ -61,7 +61,7 @@ template machinery or a generated instance" view at a glance.
 | `template/chkq-kit/` | checker-qualification SV kit (negative tests: expectation catcher, guarded injector, base test) — source for staging into an env's negative-test tree (see note below; current uvm-gen does not automate this yet) |
 | `template/external-vplan-kit/` | out-of-VS-Code vplan drafting for table/diagram-heavy PDF specs |
 | `template/docs/methodology/` | the Definition of Done the reviewer audits against |
-| `template/cockpit.ini` | verif-cockpit configuration (scans `dv,agents,env,seq_lib,tests,tb`) |
+| `template/dashboard.ini` | verif-dashboard configuration (scans `dv,agents,env,seq_lib,tests,tb`) |
 | `template/USERGUIDE.md` | **engineers start here** — agent workflow quick start |
 
 Single source of truth: each env's Copilot collateral
@@ -104,7 +104,7 @@ top, recorded in the `dv-wrapper` flow-reference skill). A run's verdict is
 its exit status, the `record_result: ... PASS/FAIL` line, the `CFG_BANNER`
 config signature banner, and the record appended to `verif_matrix.yaml` — no claim
 without that evidence, per the session report contract (machine-readable
-sidecars in `dv/status/` feed the cockpit).
+sidecars in `dv/status/` feed the dashboard).
 
 **Moving-target DUT.** The pack assumes RTL moves and encodes: revision
 pinning (via each env's `dut.rtl_filelist` in `cfg/*.yaml`) + baseline run at
@@ -129,8 +129,8 @@ is backed by `verif-env-review` (9-axis environment audit, JSON scorecard,
 M0–M3 milestone verdict) and two deterministic CI-side scripts:
 `deprecation-lint/scripts/lint.py` and `log-triage/scripts/triage_log.py`
 (first-error + failure signatures feeding `regression-triage`). The local
-cockpit (`verif-cockpit` skill; backend `cockpit.py`, config
-`template/cockpit.ini`) renders pending human decisions, the review scorecard, vplan traceability,
+dashboard (`verif-dashboard` skill; backend `dashboard.py`, config
+`template/dashboard.ini`) renders pending human decisions, the review scorecard, vplan traceability,
 PLACEHOLDER-CHECK inventory and session timeline per IP; `--all` adds a
 multi-IP index.
 
@@ -164,9 +164,9 @@ methodology tree — `docs/CLAUDE.md` + `docs/vplan.md`, and the `dv/` tree
 with the chkq kit staged into `dv/tests/negative/`, regression lists,
 exclusion file, and status sidecars (`dv_scaffold: false` opts out). What it
 does NOT carry is the CROSS-IP agent pack — the `dv-*` agents, the 35 skills,
-the cockpit, and the vplan-drafting kit live once at the workspace root. To
+the dashboard, and the vplan-drafting kit live once at the workspace root. To
 get those working on a hand-written or externally-generated DV repo, copy
-`.github/`, `template/cockpit.ini`, `template/chkq-kit/`,
+`.github/`, `template/dashboard.ini`, `template/chkq-kit/`,
 `template/docs/methodology/` and `template/USERGUIDE.md` to its root
 (flattening `template/` back out — `.github/` needs no move, it was already
 root-relative) and adapt the layout references.

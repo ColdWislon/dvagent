@@ -24,7 +24,7 @@ verb; in this infrastructure it resolves per this table (run from
 | `dv log grep` | targeted `grep` on `sim/results/<config>/<log>` |
 | `dv cov report/delta/merge` | not wired by default — say so; never improvise IMC calls |
 | `dv lint --diff` | `python3 .github/skills/deprecation-lint/scripts/lint.py <tb paths>` |
-| `dv cockpit <ip>` | `python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config template/cockpit.ini` |
+| `dv dashboard <ip>` | `python3 .github/skills/verif-dashboard/scripts/dashboard.py <ip> --config template/dashboard.ini` |
 
 Verdict contract in this flow: `make run` exits non-zero on any failure;
 `sim/scripts/record_result.py` prints a one-line `record_result: ...
@@ -105,8 +105,8 @@ Every session ends with a standard report containing, in order:
 Additionally, write a machine-readable sidecar of the report to
 `<ip>_verif/dv/status/session_<date>.json`:
 `{agent, gate, status: awaiting_approval|awaiting_signoff|blocked|done,
-open_questions[], handoffs[], rtl_rev}` — the local cockpit
-(`dv cockpit <ip>`, verif-cockpit skill) renders pending human decisions
+open_questions[], handoffs[], rtl_rev}` — the local dashboard
+(`dv dashboard <ip>`, verif-dashboard skill) renders pending human decisions
 from these sidecars.
 
 If a required evidence element cannot be produced, say so in section 6 —

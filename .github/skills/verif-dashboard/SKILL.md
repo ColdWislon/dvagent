@@ -1,19 +1,19 @@
 ---
-name: verif-cockpit
-description: Generate the local DV cockpit — a static HTML page giving one IP's pending human decisions, review scorecard, PLACEHOLDER-CHECK inventory, vplan traceability, regression clusters and agent-session timeline. Use when the user asks for a status view, "where are we", what is blocked, or the cockpit. HUMAN tool — agents never generate it in a session.
+name: verif-dashboard
+description: Generate the local DV dashboard — a static HTML page giving one IP's pending human decisions, review scorecard, PLACEHOLDER-CHECK inventory, vplan traceability, regression clusters and agent-session timeline. Use when the user asks for a status view, "where are we", what is blocked, or the dashboard. HUMAN tool — agents never generate it in a session.
 ---
 
-# Verification cockpit (local, static)
+# Verification dashboard (local, static)
 
 One command, one self-contained HTML page per IP:
 
-    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config template/cockpit.ini
-    dv cockpit <ip>                # wrapper subcommand, where wired
+    python3 .github/skills/verif-dashboard/scripts/dashboard.py <ip> --config template/dashboard.ini
+    dv dashboard <ip>                # wrapper subcommand, where wired
     # backend (works today, no wrapper change needed):
-    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config template/cockpit.ini
-    python3 .github/skills/verif-cockpit/scripts/cockpit.py --all   # + index.html
+    python3 .github/skills/verif-dashboard/scripts/dashboard.py <ip> --config template/dashboard.ini
+    python3 .github/skills/verif-dashboard/scripts/dashboard.py --all   # + index.html
 
-Open `cockpit.html` in a browser (file:// works, farm/SSH friendly). Zero
+Open `dashboard.html` in a browser (file:// works, farm/SSH friendly). Zero
 dependencies (stdlib), zero JS libs, dark instrument-panel styling.
 
 ## What it shows (top to bottom)
@@ -37,21 +37,21 @@ copilot-instructions evidence contract; schema: `{agent, gate, status:
 awaiting_approval|awaiting_signoff|blocked|done, open_questions[], handoffs[],
 rtl_rev}`).
 Direct scans: `// PLACEHOLDER-CHECK` and `VP-xxx` tags in TB sources
-(`template/cockpit.ini`'s `scan_dirs` — uvm-gen envs scan dv,agents,env,seq_lib,tests,tb),
+(`template/dashboard.ini`'s `scan_dirs` — uvm-gen envs scan dv,agents,env,seq_lib,tests,tb),
 `docs/vplan.md` (tolerant), `dv/cov/exclusion_requests.md`.
 
 ## Configuration — the tool abstraction
-`template/cockpit.ini` (pass `--config template/cockpit.ini`; the script's
-own built-in default only looks at `<root>/cockpit.ini`), section `[tool]`: everything
+`template/dashboard.ini` (pass `--config template/dashboard.ini`; the script's
+own built-in default only looks at `<root>/dashboard.ini`), section `[tool]`: everything
 Xcelium/flow-specific (status dir, verdict filenames, vplan/exclusions paths,
 scan dirs/extensions, tags, `--all` discovery glob) is config, not code.
 Built-in defaults are the xcelium/dv profile — no file needed to start.
-Optional `~/.dvcockpit.ini` overlay may override `[display]` only (title,
+Optional `~/.dvdashboard.ini` overlay may override `[display]` only (title,
 stale_hours); `[tool]` is team policy and stays versioned.
 
 ## How to use it
 
-**Daily (engineer).** Run the cockpit each morning (or after a batch of
+**Daily (engineer).** Run the dashboard each morning (or after a batch of
 sim runs) and read the **Pending human** hero first — it is the list of
 things that block the flow until *you* act: approve a Gate-1 plan, sign off a
 checker, rule on an exclusion, answer a session's open question, or resolve a
@@ -70,7 +70,7 @@ top cluster, not the 200 failures — one fix usually clears the cluster.
 **Before an MR.** Check that **placeholders = 0** and **lint errors = 0** for
 your IP; both are merge blockers the reviewer will catch anyway.
 
-**Lead / multi-IP.** `dv cockpit --all` writes one page per IP plus
+**Lead / multi-IP.** `dv dashboard --all` writes one page per IP plus
 `index.html` — scan the index for IPs with high pending counts or a slipped
 milestone.
 
@@ -79,18 +79,18 @@ milestone.
 re-run the relevant `dv` step, then regenerate. "no data" means that source was
 never produced for this IP (e.g. no `triage.json` yet).
 
-**If a panel is empty when you expect content.** The cockpit only renders what
+**If a panel is empty when you expect content.** The dashboard only renders what
 the flow deposits: verdicts must land in `<ip>/dv/status/` (review/lint/triage
 JSON) and sessions must write their `session_*.json` sidecar. Tags
 (`VP-xxx`, `PLACEHOLDER-CHECK`) are scanned live from sources, so those always
 reflect the checkout.
 
-**Retarget or relocate.** Edit `template/cockpit.ini` `[tool]` (paths, filenames, tags,
-discovery glob) — no code change. `python3 cockpit.py --help` lists flags.
+**Retarget or relocate.** Edit `template/dashboard.ini` `[tool]` (paths, filenames, tags,
+discovery glob) — no code change. `python3 dashboard.py --help` lists flags.
 
 ## Boundaries
 - Read-only over the checkout; writes only the html output.
 - Human-invoked. Agents do not run it: it renders state, it is not evidence,
   and it must never substitute for verbatim `dv` verdicts in a session report.
-- Wrapper wiring (`dv cockpit`) follows the ask-don't-guess protocol — see the
+- Wrapper wiring (`dv dashboard`) follows the ask-don't-guess protocol — see the
   dv-wrapper skill entry.

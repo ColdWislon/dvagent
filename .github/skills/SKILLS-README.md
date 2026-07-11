@@ -30,7 +30,7 @@ stack. Each skill is a self-contained folder that a skills-compatible agent
 ### Visibility
 | Skill | Role |
 |---|---|
-| `verif-cockpit` | local static-HTML cockpit per IP (pending human, scorecard, vplan, clusters, sessions); `scripts/cockpit.py` + `cockpit.ini` tool abstraction |
+| `verif-dashboard` | local static-HTML dashboard per IP (pending human, scorecard, vplan, clusters, sessions); `scripts/dashboard.py` + `dashboard.ini` tool abstraction |
 
 ### Review / enforcement — sign off an environment
 | Skill | Role |

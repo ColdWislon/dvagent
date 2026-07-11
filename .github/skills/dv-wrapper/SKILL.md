@@ -124,12 +124,12 @@ is absent.
 [append below, newest first]
 - (none yet)
 
-## `dv cockpit` (proposed subcommand)
-- Intended: `dv cockpit <ip> [--all]` wraps
-  `python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config
-  template/cockpit.ini` (the config moved with the rest of the template;
+## `dv dashboard` (proposed subcommand)
+- Intended: `dv dashboard <ip> [--all]` wraps
+  `python3 .github/skills/verif-dashboard/scripts/dashboard.py <ip> --config
+  template/dashboard.ini` (the config moved with the rest of the template;
   `--root` stays `.` so IP discovery still anchors on the true repo root).
-  Human-facing; produces `cockpit.html`, no JSON
+  Human-facing; produces `dashboard.html`, no JSON
   verdict, exit 0 on generation.
 - **UNKNOWN — ASK**: is the subcommand wired in this team's wrapper yet? If
   absent, invoke the backend script directly and record the answer here.
