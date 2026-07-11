@@ -51,6 +51,7 @@ in this guide otherwise stays the same.
 | You want to... | Use | Entry point |
 |---|---|---|
 | First day on the repo / guided onboarding | (read-only guide) | `/start-here` |
+| Wire a generated env's tb_top to real RTL | dv-dut-integrator | `/connect-dut <ip>` |
 | Close a vplan item (test + covergroup) | dv-test-writer | `/close-vplan-item VP-xxx <ip>` |
 | Build reusable sequences / constraints | dv-stim-writer | `/build-stimulus <scenario> <ip>` |
 | Add new checks (scoreboard/model/SVA) | dv-checker-writer | `/write-checkers <spec §> <ip>` |

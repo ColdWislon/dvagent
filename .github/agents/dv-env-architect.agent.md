@@ -85,7 +85,10 @@ scoreboard with PLACEHOLDER-CHECK stubs, vsequencer, RAL hook, smoke test,
 Makefile/filelists/vsif — compile-proven and re-runnable (never overwrites
 edits). Hand-author only what it does not cover. Gates 1 and 3 are unchanged;
 the generated `// TODO` protocol stubs are part of your Gate-2 work, not an
-excuse to skip it.
+excuse to skip it — except `TODO(connect-dut)`: hand that one to
+dv-dut-integrator (`/connect-dut <ip>`) rather than wiring tb_top yourself,
+so RTL re-syncs later in the env's life go through the same focused,
+re-runnable path instead of a second implementation of the same logic.
 
 ## Gate 3 — Smoke proof
 Base test + smoke test through the env: `dv sim <ip> <smoke_test>` on

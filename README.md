@@ -47,7 +47,7 @@ just the new files (stale files needing manual wiring are listed).
 
 | Where | What |
 |---|---|
-| `.github/` | the Copilot DV agent pack: 7 `dv-*` agents, 13 prompts (incl. `/start-here` onboarding), 30 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown |
+| `.github/` | the Copilot DV agent pack: 8 `dv-*` agents, 14 prompts (incl. `/start-here` onboarding), 31 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown |
 | `uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 30-test suite). Also usable standalone — every generated env carries its own `.github/` Copilot kit |
 | `chkq-kit/` | checker-qualification SV kit (negative tests: expectation catcher, guarded injector, base test) — staged into every env's `dv/tests/negative/` |
 | `external-vplan-kit/` | out-of-VS-Code vplan drafting for table/diagram-heavy PDF specs |
@@ -65,6 +65,7 @@ paths and commands — there is no second copy to drift.
 | Agent | Purpose | Entry prompt |
 |---|---|---|
 | `dv-env-architect` | architect/generate NEW env structure (bootstraps from uvm-gen, customizes via the 12 authoring skills) | `/generate-environment` |
+| `dv-dut-integrator` | wire an EXISTING env's tb_top to the real DUT RTL (port mapping, tie-offs); focused and re-runnable, no new structure | `/connect-dut` |
 | `dv-test-writer` | vplan item → test + covergroup + stimulus GLUE (thin subclasses of existing sequences), closed-loop | `/close-vplan-item` |
 | `dv-stim-writer` | shared stimulus LIBRARY (new sequence classes, items, constraint layers), with distribution evidence | `/build-stimulus` |
 | `dv-checker-writer` | NEW checks only (scoreboard/model/SVA), plan-approval + fault-injection protocol, human sign-off | `/write-checkers` |
@@ -97,9 +98,9 @@ without that evidence, per the session report contract (machine-readable
 sidecars in `dv/status/` feed the cockpit).
 
 **Moving-target DUT.** The pack assumes RTL moves and encodes: revision
-pinning (via each env's `sim/dut.f`) + baseline run at session start, no
-silent TB adaptation to RTL interface changes (change-note confirmation
-required), revision-scoped coverage, dv-debug's what-changed/bisect step,
+pinning (via each env's `dut.rtl_filelist` in `cfg/*.yaml`) + baseline run at
+session start, no silent TB adaptation to RTL interface changes (change-note
+confirmation required), revision-scoped coverage, dv-debug's what-changed/bisect step,
 and the chkq central path registry (`dv/tests/negative/chkq_paths.svh`) so
 RTL refactors have one audit point (CHKQ_PATH = maintenance; CHKQ_BLIND =
 checker erosion). Recommended alongside: deliver RTL as tagged drops with

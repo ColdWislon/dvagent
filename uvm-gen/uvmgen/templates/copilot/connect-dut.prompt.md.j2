@@ -26,17 +26,41 @@ parse RTL — the port list comes from the design sources.
 {% for a in agents %}
 * `agents/{{ a.name }}_agent/{{ ip }}_{{ a.name }}_if.sv` — '{{ a.name }}' interface signals (extend them to match the DUT port groups)
 {% endfor %}
+{% for v in vips %}
+* `vip/{{ v.name }}_vip/` — Cadence {{ v.title }} VIP wrapper for '{{ v.name }}': ports that belong to this VIP are that wrapper's TODO(vip) job, not a custom interface here.
+{% endfor %}
 
 ## Procedure
 
-1. Read the `{{ dut.module }}` module declaration from the RTL to get the
-   exact port list.
-2. Extend each interface with the real protocol signals (keep the clocking
-   blocks in sync), then connect every DUT port either to an interface signal
-   or to `clk`/`rst_n`. Tie off ports that no interface covers yet and leave
-   a `// TODO(protocol)` note.
-3. Ensure the RTL filelist path in `cfg/{{ cfg_relname }}` resolves; the
+1. Read the `{{ dut.module }}` module declaration directly from the RTL
+   (`dut.rtl_filelist`, following any nested `-f` includes) to get the exact
+   port list — do not guess it from the interface stubs or from memory.
+2. Match every port to an owner:
+   * belongs to an existing custom interface (name/width matches the
+     protocol that interface's agent was written for) → extend that
+     interface's signal list AND its `drv_cb`/`mon_cb` clocking blocks with
+     the real signal, and update the matching driver/monitor in the same
+     pass — a port wired into the interface but never read/driven by the
+     agent is only half connected;
+{% if vips %}
+   * belongs to one of the Cadence VIPs above → leave it, the VIP wrapper's
+     own TODO(vip) markers own it;
+{% endif %}
+   * clock/reset-like → `clk`/`rst_n`;
+   * matches nothing (test modes, DFT, unused straps) → tie it off directly
+     in the instantiation with a one-line comment stating why.
+3. If a port's owner genuinely isn't inferable from its name/width against
+   the interfaces above, stop and ask rather than guessing a mapping — and
+   say so explicitly if a port needs an interface/agent this environment
+   doesn't have yet (that's a new-agent job, not a wiring job).
+4. Ensure the RTL filelist path in `cfg/{{ cfg_relname }}` resolves; the
    Makefile then compiles the real RTL automatically instead of the stub.
+
+If this environment was generated inside a repository that also carries the
+`dv-dut-integrator` agent and `dut-integration` skill (the dvagent DV
+Copilot pack), prefer `/connect-dut {{ ip }}` there — same procedure, with an
+explicit plan-approval gate before any interface is edited. The steps above
+are the fully self-contained equivalent for standalone use of this env.
 
 ## Commands
 
@@ -47,5 +71,7 @@ make -C sim compile
 ## Done when
 
 `make -C sim compile` is clean (exit 0, no elaboration errors) WITHOUT the
-"generated DUT stub" note — i.e. against the real RTL. Then continue with
+"generated DUT stub" note — i.e. against the real RTL — AND every DUT port
+is accounted for: connected to an interface/clk/rst_n, or tied off with a
+comment. Zero `// TODO(connect-dut)` markers left. Then continue with
 `implement-agents.prompt.md`.

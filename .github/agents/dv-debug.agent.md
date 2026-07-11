@@ -32,8 +32,9 @@ weakened check.
 Before hypothesizing, compare revisions: when did this test last pass
 (`verif_matrix.yaml` is the run history — grep the test/config), and what
 moved since — `git -C <rtl_dir> log --oneline <last_pass_rev>..HEAD`
-(the RTL dir comes from `sim/dut.f`; if dut.f still selects the generated
-stub, the DUT never changed) and `git log` on the env itself. A failure
+(the RTL dir comes from `dut.rtl_filelist` in the active `cfg/*.yaml`; if it
+still doesn't resolve and the generated stub is in play, the DUT never
+changed) and `git log` on the env itself. A failure
 appearing right after an RTL drop with no TB change is a
 DESIGN-REGRESSION suspect first: confirm by running the failing seed on
 the previous RTL revision (if snapshots/worktrees allow). If the commit

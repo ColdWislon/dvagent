@@ -21,7 +21,8 @@ running `dv cov report`.
 1. Branch state: current branch vs integration branch — commits ahead
    (one line each), uncommitted changes (`git status -s`,
    `git diff --stat`), current RTL revision (the RTL dir is referenced by
-   sim/dut.f; "stub DUT" if dut.f still selects the generated stub).
+   `dut.rtl_filelist` in the active `cfg/*.yaml`; "stub DUT" if it still
+   doesn't resolve).
 2. Recent evidence: verif_matrix.yaml records (newest first; or
    `make -C sim matrix` for the summary), session sidecars in dv/status/,
    and wrapper verdict JSONs under runs/ where a dv wrapper exists; note

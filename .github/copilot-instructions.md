@@ -63,11 +63,12 @@ protocol below.
 
 1. PIN THE REVISION. At session start, record the RTL revision you are
    working against. The RTL lives OUTSIDE the generated env — its filelist
-   is referenced by `sim/dut.f`; record `git -C <rtl_dir> log -1
-   --format=%h` there (or the design drop tag), plus the env's own
-   revision. While the DUT is the generated stub (fresh env, dut.f not yet
-   flipped), say so — "stub DUT" is the revision statement. Every session
-   report states it; results are meaningless without it.
+   is referenced by `dut.rtl_filelist` in the active `cfg/*.yaml`; record
+   `git -C <rtl_dir> log -1 --format=%h` there (or the design drop tag),
+   plus the env's own revision. While the DUT is the generated stub (fresh
+   env, `dut.rtl_filelist` not yet resolving), say so — "stub DUT" is the
+   revision statement. Every session report states it; results are
+   meaningless without it.
 2. BASELINE BEFORE WORK. Before implementing anything, run the smoke (or
    the relevant existing test) at the current revision. If it already
    fails, that is PRE-EXISTING: report it and stop or route to
@@ -175,4 +176,5 @@ no `#delay` in sequences, every covergroup bin maps to a vplan reference.
 - Methodology guides:  `docs/methodology/`
 - Negative tests/chkq: `dv/tests/negative/`; regression lists `dv/lists/`;
   session sidecars `dv/status/`; exclusions `dv/cov/exclusion_requests.md`
-- RTL: outside the env, referenced by `sim/dut.f` — read-only as ever.
+- RTL: outside the env, referenced by `dut.rtl_filelist` in `cfg/*.yaml` —
+  read-only as ever.
