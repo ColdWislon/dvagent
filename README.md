@@ -56,7 +56,7 @@ template machinery or a generated instance" view at a glance.
 
 | Where | What |
 |---|---|
-| `.github/` | the Copilot DV agent pack: 8 `dv-*` agents, 14 prompts (incl. `/start-here` onboarding), 31 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown — **stays at repo root**, see above |
+| `.github/` | the Copilot DV agent pack: 8 `dv-*` agents, 14 prompts (incl. `/start-here` onboarding), 35 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown — **stays at repo root**, see above |
 | `template/uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 30-test suite). Also usable standalone — every generated env carries its own `.github/` Copilot kit |
 | `template/chkq-kit/` | checker-qualification SV kit (negative tests: expectation catcher, guarded injector, base test) — source for staging into an env's negative-test tree (see note below; current uvm-gen does not automate this yet) |
 | `template/external-vplan-kit/` | out-of-VS-Code vplan drafting for table/diagram-heavy PDF specs |
@@ -73,7 +73,7 @@ names, paths and commands — there is no second copy to drift.
 
 | Agent | Purpose | Entry prompt |
 |---|---|---|
-| `dv-env-architect` | architect/generate NEW env structure (bootstraps from uvm-gen, customizes via the 12 authoring skills) | `/generate-environment` |
+| `dv-env-architect` | architect/generate NEW env structure (bootstraps from uvm-gen, customizes via the 16 authoring skills) | `/generate-environment` |
 | `dv-dut-integrator` | wire an EXISTING env's tb_top to the real DUT RTL (port mapping, tie-offs); focused and re-runnable, no new structure | `/connect-dut` |
 | `dv-test-writer` | vplan item → test + covergroup + stimulus GLUE (thin subclasses of existing sequences), closed-loop | `/close-vplan-item` |
 | `dv-stim-writer` | shared stimulus LIBRARY (new sequence classes, items, constraint layers), with distribution evidence | `/build-stimulus` |
@@ -163,7 +163,7 @@ Each generated env is self-contained for its own flow: its narrow `.github/`
 methodology tree — `docs/CLAUDE.md` + `docs/vplan.md`, and the `dv/` tree
 with the chkq kit staged into `dv/tests/negative/`, regression lists,
 exclusion file, and status sidecars (`dv_scaffold: false` opts out). What it
-does NOT carry is the CROSS-IP agent pack — the `dv-*` agents, the 31 skills,
+does NOT carry is the CROSS-IP agent pack — the `dv-*` agents, the 35 skills,
 the cockpit, and the vplan-drafting kit live once at the workspace root. To
 get those working on a hand-written or externally-generated DV repo, copy
 `.github/`, `template/cockpit.ini`, `template/chkq-kit/`,

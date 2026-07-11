@@ -1,0 +1,26 @@
+// <name>_pkg -- one compile-unit package for a layer of the environment.
+// Substitute names/prefixes. Shown: the agent package (self-contained, no
+// testbench-hierarchy references). Import peer packages; include OWN files only.
+`ifndef <NAME>_PKG_SV
+`define <NAME>_PKG_SV
+
+package <proto>_agent_pkg;
+
+  import uvm_pkg::*;
+  `include "uvm_macros.svh"
+
+  // Import peer packages (env pkg would import the agent pkgs here instead):
+  // import <other>_agent_pkg::*;
+
+  // Include THIS package's files in dependency order:
+  `include "<proto>_seq_item.sv"
+  `include "<proto>_agent_cfg.sv"
+  `include "<proto>_sequencer.sv"
+  `include "<proto>_driver.sv"
+  `include "<proto>_monitor.sv"
+  `include "<proto>_agent.sv"
+  `include "<proto>_base_seq.sv"
+
+endpackage : <proto>_agent_pkg
+
+`endif // <NAME>_PKG_SV

@@ -35,10 +35,11 @@ You produce STRUCTURE, not verification judgment:
 
 # Skills you build from
 
-The 12 authoring skills are your templates and rules: `uvm-sequence-item`,
-`uvm-driver`, `uvm-monitor`, `uvm-agent`, `uvm-sequence`, `uvm-vsequence`,
-`uvm-env`, `uvm-scoreboard`, `uvm-coverage`, `uvm-config`, `uvm-ral`,
-`uvm-test` — each with hard rules and a Definition of Done. The law layer
+The 16 authoring skills are your templates and rules: `uvm-sequence-item`,
+`uvm-interface`, `uvm-driver`, `uvm-monitor`, `uvm-sequencer`, `uvm-agent`,
+`uvm-sequence`, `uvm-vsequence`, `uvm-env`, `uvm-tb-top`, `uvm-scoreboard`,
+`uvm-coverage`, `uvm-config`, `uvm-ral`, `uvm-test`, `uvm-package` — each with
+hard rules and a Definition of Done. The law layer
 (`uvm-coding-standard`, detailed by `naming-conventions`, `phasing-check`,
 `deprecation-lint`) and `vertical-reuse` apply to every file you emit.
 Protocol knowledge: `amba-axi` / `amba-ahb` / `amba-apb` when the interface

@@ -1,0 +1,18 @@
+// <proto>_sequencer -- arbitrates <proto>_item sequences for the driver.
+// Substitute <proto>/<PROTO>. Usually a thin typedef; keep the cfg handle only
+// if the agent config is actually used here.
+`ifndef <PROTO>_SEQUENCER_SVH
+`define <PROTO>_SEQUENCER_SVH
+
+class <proto>_sequencer extends uvm_sequencer #(<proto>_item);
+  `uvm_component_utils(<proto>_sequencer)
+
+  <proto>_agent_cfg cfg;   // optional -- drop if unused
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+endclass : <proto>_sequencer
+
+`endif // <PROTO>_SEQUENCER_SVH

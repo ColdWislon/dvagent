@@ -11,17 +11,21 @@ stack. Each skill is a self-contained folder that a skills-compatible agent
 | Skill | Produces |
 |---|---|
 | `uvm-sequence-item` | transaction (fields, constraints, print/compare) |
+| `uvm-interface` | SV interface (clocking blocks, modports, vif contract) |
 | `uvm-driver` | pin driver (get_next_item/item_done, reset) |
 | `uvm-monitor` | passive monitor (reconstruct + analysis_port) |
+| `uvm-sequencer` | sequencer (parameterized arbiter; driver/vseq wiring) |
 | `uvm-agent` | driver+monitor+sequencer+config, active/passive |
 | `uvm-sequence` | stimulus sequence |
 | `uvm-vsequence` | virtual sequence + vsequencer orchestration |
 | `uvm-env` | top assembly + TLM connectivity |
+| `uvm-tb-top` | testbench top (clk/reset, DUT+if, vif publish, run_test) |
 | `uvm-scoreboard` | checker (expected vs actual, residual checks) |
 | `uvm-coverage` | functional coverage subscriber, VP-xxx-tagged |
 | `uvm-config` | config objects + config_db discipline, vif delivery |
 | `uvm-ral` | register model + adapter + predictor |
 | `uvm-test` | test class (config + launch vseq under objection) |
+| `uvm-package` | env packages (`_pkg.sv`), import/include + compile order |
 
 ### Visibility
 | Skill | Role |
@@ -109,7 +113,7 @@ team's `copilot-dv-agents` repo:
   `deprecation-lint`) are the DETAIL layer under `uvm-coding-standard`.
 - **Role split with the six agents**: the agents deliberately do NOT create or
   restructure environments, agents, scoreboards, or RAL models (dv-test-writer
-  boundary; dv-checker-writer is additive-only). The 12 authoring skills here
+  boundary; dv-checker-writer is additive-only). The 16 authoring skills here
   cover exactly that missing role -- the ENVIRONMENT ARCHITECT: use them in
   plain chat / by the human architect, or as the basis for a future
   `dv-env-architect` agent. They are not for dv-test-writer sessions.

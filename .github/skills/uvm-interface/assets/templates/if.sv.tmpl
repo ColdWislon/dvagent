@@ -1,0 +1,42 @@
+// <proto>_if -- signal-level interface of the '<proto>' agent
+// Substitute <proto>/<PROTO>; replace the generic valid/ready/data handshake
+// with the real protocol signals. Clock and reset arrive as ports from tb_top.
+`ifndef <PROTO>_IF_SV
+`define <PROTO>_IF_SV
+
+interface <proto>_if (
+  input logic clk,
+  input logic rst_n
+);
+
+  // TODO(protocol): replace with the real '<proto>' signals. The generic
+  // handshake below lets a freshly generated environment compile and pass its
+  // smoke test unmodified.
+  logic        valid;
+  logic        ready;
+  logic [31:0] data;
+
+  // Driver clocking block: TB drives requests, samples DUT back-pressure.
+  clocking drv_cb @(posedge clk);
+    output valid;
+    output data;
+    input  ready;
+  endclocking
+
+  // Monitor clocking block: everything sampled.
+  clocking mon_cb @(posedge clk);
+    input valid;
+    input ready;
+    input data;
+  endclocking
+
+  // Optional modports — expose only the clocking block to each role.
+  modport drv_mp (clocking drv_cb, input rst_n);
+  modport mon_mp (clocking mon_cb, input rst_n);
+
+  // TODO(protocol): add interface assertions / protocol checkers here (or in a
+  // bind-ed checker module) as the protocol matures.
+
+endinterface : <proto>_if
+
+`endif // <PROTO>_IF_SV
