@@ -7,10 +7,10 @@ description: Generate the local DV cockpit — a static HTML page giving one IP'
 
 One command, one self-contained HTML page per IP:
 
-    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>   # uvm-gen default
+    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config template/cockpit.ini
     dv cockpit <ip>                # wrapper subcommand, where wired
     # backend (works today, no wrapper change needed):
-    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip>
+    python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config template/cockpit.ini
     python3 .github/skills/verif-cockpit/scripts/cockpit.py --all   # + index.html
 
 Open `cockpit.html` in a browser (file:// works, farm/SSH friendly). Zero
@@ -37,11 +37,12 @@ copilot-instructions evidence contract; schema: `{agent, gate, status:
 awaiting_approval|awaiting_signoff|blocked|done, open_questions[], handoffs[],
 rtl_rev}`).
 Direct scans: `// PLACEHOLDER-CHECK` and `VP-xxx` tags in TB sources
-(cockpit.ini `scan_dirs` — uvm-gen envs scan dv,agents,env,seq_lib,tests,tb),
+(`template/cockpit.ini`'s `scan_dirs` — uvm-gen envs scan dv,agents,env,seq_lib,tests,tb),
 `docs/vplan.md` (tolerant), `dv/cov/exclusion_requests.md`.
 
 ## Configuration — the tool abstraction
-`cockpit.ini` at the repo root, section `[tool]`: everything
+`template/cockpit.ini` (pass `--config template/cockpit.ini`; the script's
+own built-in default only looks at `<root>/cockpit.ini`), section `[tool]`: everything
 Xcelium/flow-specific (status dir, verdict filenames, vplan/exclusions paths,
 scan dirs/extensions, tags, `--all` discovery glob) is config, not code.
 Built-in defaults are the xcelium/dv profile — no file needed to start.
@@ -84,7 +85,7 @@ JSON) and sessions must write their `session_*.json` sidecar. Tags
 (`VP-xxx`, `PLACEHOLDER-CHECK`) are scanned live from sources, so those always
 reflect the checkout.
 
-**Retarget or relocate.** Edit `cockpit.ini` `[tool]` (paths, filenames, tags,
+**Retarget or relocate.** Edit `template/cockpit.ini` `[tool]` (paths, filenames, tags,
 discovery glob) — no code change. `python3 cockpit.py --help` lists flags.
 
 ## Boundaries

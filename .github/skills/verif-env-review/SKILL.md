@@ -63,7 +63,7 @@ house layout.
    the DoD checklists, the exit code of deprecation-lint's `lint.py`
    (wrapper: `dv lint --diff`)); logs / ucdb /
    reports archived; a failing gate blocks merge. The per-item DoD is the
-   team's `docs/methodology/definition-of-done.md`; this review's milestone
+   team's `template/docs/methodology/definition-of-done.md`; this review's milestone
    verdict must not contradict it. Complementary to the `dv-reviewer` agent:
    dv-reviewer reviews one DIFF pre-MR (semantic shortcuts); this skill audits
    the delivered ENVIRONMENT.

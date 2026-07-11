@@ -21,7 +21,7 @@ Determine how this repo compiles/simulates, in this order:
 
 ## 2. Orient them (read-only)
 Read what exists and summarize in under a page, flagging anything missing:
-- `README.md` at the env root (uvm-gen envs) and/or `USERGUIDE.md` / `.github/USERGUIDE.md`
+- `README.md` at the env root (uvm-gen envs) and/or `template/USERGUIDE.md`
 - the per-IP context `docs/CLAUDE.md` (or `<ip>/docs/CLAUDE.md`) — if it is
   a template full of brackets, tell them filling it is a first-week task
 - `docs/vplan.md` — does a real vplan exist, or only the skeleton?

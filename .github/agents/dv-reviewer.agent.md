@@ -50,7 +50,7 @@ firing evidence ⇒ FINDING: vacuous-checker risk.
 ## 3. Traceability and DoD
 - every new test/sequence/bin references a vplan item; the referenced item
   actually describes the implemented behavior
-- Definition of Done checklist from `docs/methodology/` applies: verdicts
+- Definition of Done checklist from `template/docs/methodology/` applies: verdicts
   attached, seeds documented, coverage evidence present
 - vplan diffs: the cross-cutting completeness matrix stays consistent
   (new items registered in their topic row; no category regressed to

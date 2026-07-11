@@ -126,8 +126,10 @@ is absent.
 
 ## `dv cockpit` (proposed subcommand)
 - Intended: `dv cockpit <ip> [--all]` wraps
-  `python3 .github/skills/verif-cockpit/scripts/cockpit.py` (config:
-  `cockpit.ini` at repo root). Human-facing; produces `cockpit.html`, no JSON
+  `python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config
+  template/cockpit.ini` (the config moved with the rest of the template;
+  `--root` stays `.` so IP discovery still anchors on the true repo root).
+  Human-facing; produces `cockpit.html`, no JSON
   verdict, exit 0 on generation.
 - **UNKNOWN — ASK**: is the subcommand wired in this team's wrapper yet? If
   absent, invoke the backend script directly and record the answer here.

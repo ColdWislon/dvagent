@@ -76,8 +76,8 @@ naming. `dv compile <ip>` until clean (zero errors; zero new warnings).
 Run `deprecation-lint/scripts/lint.py` on the generated tree; fix findings.
 
 Bootstrap option — prefer the deterministic generator when present: if the
-repo (or the pack's home repo) ships the `uvm-gen` CLI (`uvm-gen/uvm_gen.py`,
-see `uvm-gen/README.md`), express the approved Gate-1 component table as its
+repo (or the pack's home repo) ships the `uvm-gen` CLI (`template/uvm-gen/uvm_gen.py`,
+see `template/uvm-gen/README.md`), express the approved Gate-1 component table as its
 YAML (agents with active/passive, Cadence VIPs, DUT module, params) and
 generate the skeleton with it, then customize per the authoring skills. It
 emits the same structure this protocol requires — agents, single env_cfg,

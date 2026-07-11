@@ -14,7 +14,7 @@ Requirement | Coverage mapping | Check mapping | Status).
 This flow relies on TEXT extraction and degrades on table/diagram-heavy
 specs. Skim the extraction first (Phase 1.3): if register maps, timing
 diagrams, or dense tables dominate the in-scope sections, STOP and tell
-the engineer to use external-vplan-kit/ (a PDF-vision LLM) instead of
+the engineer to use template/external-vplan-kit/ (a PDF-vision LLM) instead of
 producing a low-confidence draft here.
 
 ## Phase 1 — PDF ingestion (you cannot read PDF binaries directly)

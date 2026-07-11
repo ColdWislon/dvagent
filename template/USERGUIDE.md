@@ -64,7 +64,7 @@ in this guide otherwise stays the same.
 
 Vplan drafting note: Copilot cannot SEE PDFs. `/generate-vplan` works
 on text-dominant specs (pdftotext extraction); for register-map/
-timing-diagram-heavy specs, use `external-vplan-kit/` with an approved
+timing-diagram-heavy specs, use `template/external-vplan-kit/` with an approved
 PDF-vision LLM and commit the reviewed result — agents consume the
 vplan identically either way.
 

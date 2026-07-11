@@ -18,13 +18,13 @@ conventions, one verification record (`verif_matrix.yaml` per env).
 ```bash
 # 0. Create your repo from this template (or clone it), then on a machine
 #    where xrun resolves:
-pip install -r uvm-gen/requirements.txt
+pip install -r template/uvm-gen/requirements.txt
 
 # 1. Describe the IP (copy an example, edit agents/VIPs/params)
-cp uvm-gen/examples/my_ip.yaml uart.yaml && $EDITOR uart.yaml   # ip_name: uart
+cp template/uvm-gen/examples/my_ip.yaml uart.yaml && $EDITOR uart.yaml   # ip_name: uart
 
 # 2. Generate the environment INTO this workspace
-python3 uvm-gen/uvm_gen.py uart.yaml -o .
+python3 template/uvm-gen/uvm_gen.py uart.yaml -o .
 
 # 3. Prove it (stub DUT - green before you write a line of SV)
 cd uart_verif/sim
@@ -45,20 +45,29 @@ just the new files (stale files needing manual wiring are listed).
 
 ## What's in the template
 
+Everything that makes up the template lives under `template/`, with exactly
+one exception: `.github/` stays at the true repository root, because GitHub
+Copilot only discovers `copilot-instructions.md`/`prompts/`/`agents/` at the
+root of whatever's actually open — nesting it under `template/` would make
+the whole agent pack invisible to Copilot on this repo itself. Generated IP
+environments (`<ip>_verif/`, from running uvm-gen) also land at the true
+root, as siblings of `template/` — that sibling split IS the "is this
+template machinery or a generated instance" view at a glance.
+
 | Where | What |
 |---|---|
-| `.github/` | the Copilot DV agent pack: 8 `dv-*` agents, 14 prompts (incl. `/start-here` onboarding), 31 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown |
-| `uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 30-test suite). Also usable standalone — every generated env carries its own `.github/` Copilot kit |
-| `chkq-kit/` | checker-qualification SV kit (negative tests: expectation catcher, guarded injector, base test) — staged into every env's `dv/tests/negative/` |
-| `external-vplan-kit/` | out-of-VS-Code vplan drafting for table/diagram-heavy PDF specs |
-| `docs/methodology/` | the Definition of Done the reviewer audits against |
-| `cockpit.ini` | verif-cockpit configuration (scans `dv,agents,env,seq_lib,tests,tb`) |
-| `USERGUIDE.md` | **engineers start here** — agent workflow quick start |
+| `.github/` | the Copilot DV agent pack: 8 `dv-*` agents, 14 prompts (incl. `/start-here` onboarding), 31 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown — **stays at repo root**, see above |
+| `template/uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 30-test suite). Also usable standalone — every generated env carries its own `.github/` Copilot kit |
+| `template/chkq-kit/` | checker-qualification SV kit (negative tests: expectation catcher, guarded injector, base test) — source for staging into an env's negative-test tree (see note below; current uvm-gen does not automate this yet) |
+| `template/external-vplan-kit/` | out-of-VS-Code vplan drafting for table/diagram-heavy PDF specs |
+| `template/docs/methodology/` | the Definition of Done the reviewer audits against |
+| `template/cockpit.ini` | verif-cockpit configuration (scans `dv,agents,env,seq_lib,tests,tb`) |
+| `template/USERGUIDE.md` | **engineers start here** — agent workflow quick start |
 
 Single source of truth: each env's Copilot collateral
 (`.github/copilot-instructions.md` + the six phase prompts) is rendered by
-uvm-gen from `uvm-gen/uvmgen/templates/copilot/` with the IP's real names,
-paths and commands — there is no second copy to drift.
+uvm-gen from `template/uvm-gen/uvmgen/templates/copilot/` with the IP's real
+names, paths and commands — there is no second copy to drift.
 
 ## The agent set
 
@@ -82,7 +91,7 @@ env's `README.md`, then `/start-here`.
 
 Vplan drafting: `/generate-vplan <ip> <spec.pdf>` for text-dominant PDFs
 (pdftotext extraction, page-cited items, human-approved draft);
-`external-vplan-kit/` for table/diagram-heavy specs via a PDF-vision LLM
+`template/external-vplan-kit/` for table/diagram-heavy specs via a PDF-vision LLM
 outside VS Code (same format contract; data-policy approval required for
 the second vendor).
 
@@ -106,7 +115,7 @@ RTL refactors have one audit point (CHKQ_PATH = maintenance; CHKQ_BLIND =
 checker erosion). Recommended alongside: deliver RTL as tagged drops with
 change notes, and stamp rtl/dv revisions into every verdict.
 
-**Checker qualification (chkq).** `chkq-kit/` enables tests where checkers
+**Checker qualification (chkq).** `template/chkq-kit/` enables tests where checkers
 are EXPECTED to fire: dv-checker-writer's Gate 4 commits persistent
 negative tests under `dv/tests/negative/` (injection only via
 `chkq_injector`, `+CHKQ_ENABLE`, `XRUN_OPTS='-access +rwc'`, coverage off
@@ -120,8 +129,8 @@ is backed by `verif-env-review` (9-axis environment audit, JSON scorecard,
 M0–M3 milestone verdict) and two deterministic CI-side scripts:
 `deprecation-lint/scripts/lint.py` and `log-triage/scripts/triage_log.py`
 (first-error + failure signatures feeding `regression-triage`). The local
-cockpit (`verif-cockpit` skill; backend `cockpit.py`, config `cockpit.ini`)
-renders pending human decisions, the review scorecard, vplan traceability,
+cockpit (`verif-cockpit` skill; backend `cockpit.py`, config
+`template/cockpit.ini`) renders pending human decisions, the review scorecard, vplan traceability,
 PLACEHOLDER-CHECK inventory and session timeline per IP; `--all` adds a
 multi-IP index.
 
@@ -149,13 +158,15 @@ quick-review MRs if you prefer zero agent writes there.
 ## Using the pack outside this template
 
 Generating an environment somewhere that is NOT a pack-rooted workspace?
-`uvm-gen` stages everything into the env itself (full `.github/`, USERGUIDE,
-cockpit.ini, kits, per-IP bridge instructions) so it becomes a
-self-contained Copilot-ready repo: point `--copilot-pack` (or `copilot:` in
-the YAML) at a checkout of this template if uvm-gen can't auto-discover it.
-To retrofit an existing hand-written DV repo instead, copy `.github/`,
-`cockpit.ini`, `chkq-kit/`, `docs/methodology/` and `USERGUIDE.md` to its
-root and adapt the layout references.
+uvm-gen does NOT auto-stage the wider pack today — each generated env only
+gets its own narrow `.github/` (instructions + the six phase prompts,
+self-contained by design; see `template/uvm-gen/README.md`). To get the full
+agent set, chkq kit, cockpit, and vplan-drafting tooling working on a
+hand-written or externally-generated DV repo, copy `.github/`,
+`template/cockpit.ini`, `template/chkq-kit/`, `template/docs/methodology/`
+and `template/USERGUIDE.md` to its root (flattening `template/` back out —
+`.github/` needs no move, it was already root-relative) and adapt the layout
+references.
 
 ## Prerequisites (in order of importance)
 

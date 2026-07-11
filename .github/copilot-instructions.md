@@ -6,7 +6,7 @@ Xcelium flow. These rules apply to every chat request and every agent.
 ## Golden commands — never invoke xrun/imc/vmanager ad hoc
 
 Each IP's testbench is a **uvm-gen environment** (`<ip>_verif/` — generated
-by `uvm-gen/`, see its README): all tool access goes through the generated
+by `template/uvm-gen/`, see its README): all tool access goes through the generated
 `sim/Makefile`. Throughout this pack, `dv <verb>` is the ABSTRACT golden
 verb; in this infrastructure it resolves per this table (run from
 `<ip>_verif/sim/`, or prefix `make -C <ip>_verif/sim`):
@@ -24,7 +24,7 @@ verb; in this infrastructure it resolves per this table (run from
 | `dv log grep` | targeted `grep` on `sim/results/<config>/<log>` |
 | `dv cov report/delta/merge` | not wired by default — say so; never improvise IMC calls |
 | `dv lint --diff` | `python3 .github/skills/deprecation-lint/scripts/lint.py <tb paths>` |
-| `dv cockpit <ip>` | `python3 .github/skills/verif-cockpit/scripts/cockpit.py` (config: `cockpit.ini`) |
+| `dv cockpit <ip>` | `python3 .github/skills/verif-cockpit/scripts/cockpit.py <ip> --config template/cockpit.ini` |
 
 Verdict contract in this flow: `make run` exits non-zero on any failure;
 `sim/scripts/record_result.py` prints a one-line `record_result: ...
@@ -173,7 +173,7 @@ no `#delay` in sequences, every covergroup bin maps to a vplan reference.
     run records (sign-off evidence)
 - Per-IP context:      `docs/CLAUDE.md` (read it before working on an IP)
 - Vplans:              `docs/vplan.md`
-- Methodology guides:  `docs/methodology/`
+- Methodology guides:  `template/docs/methodology/`
 - Negative tests/chkq: `dv/tests/negative/`; regression lists `dv/lists/`;
   session sidecars `dv/status/`; exclusions `dv/cov/exclusion_requests.md`
 - RTL: outside the env, referenced by `dut.rtl_filelist` in `cfg/*.yaml` —
