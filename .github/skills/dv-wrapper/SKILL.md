@@ -19,32 +19,35 @@ This repository's testbench infrastructure is uvm-gen-generated
 team-built `dv` CLI is on PATH, these facts are resolved — no need to ask:
 
 - Invocation (from `<ip>_verif/sim/`): `make compile` | `make run
-  TEST=<test> [SEED=n] [VERBOSITY=L] [CFG=../cfg/<cfg>.yaml] [PASSIVE=1]`
+  TEST=<test> [SEED=n] [UVM_VERBOSITY=UVM_x] [CFG=cfg/<cfg>.yaml]`
   | `make waves TEST=<test>` | `make regress` | `make matrix` | `make clean`.
-- Plusargs: `make run ... PLUSARGS='+CHKQ_ENABLE +uvm_set_verbosity=...'`.
-  Extra xrun flags: `XRUN_OPTS='-access +rwc'` (chkq builds). Extra
-  filelists: `FILELISTS+='-f extra.f'` (each domain keeps its own -f).
+  CFG paths resolve against the env root. Flip agents passive at run time:
+  `XRUN_OPTS=+<IP>_PASSIVE=all` (or a name list).
+- Plusargs and extra xrun flags both go through `XRUN_OPTS='+CHKQ_ENABLE
+  -access +rwc'`. Extra filelists: `EXTRA_FILELISTS='extra.f'` (paths; the
+  Makefile adds one -f per entry — each domain keeps its own -f).
 - Seeds: `SEED=<n>` → `xrun -svseed <n>` (default 1). `SEED=random` lets
-  xrun pick; `sim/scripts/cfg_tool.py` recovers the used seed from the
-  log into the `verif_matrix.yaml` record.
-- Verdict: exit status (non-zero = fail) + one-line `cfg_tool: PASS/FAIL`
-  + `[UVM_GEN_CFG]` config-signature banner + appended `verif_matrix.yaml`
-  record. No JSON on stdout; the matrix record is the machine-readable
-  verdict.
-- Run artifacts: logs `sim/logs/<test>_<config>_s<seed>.log`; per-config
-  work library `sim/xcelium.d_<config>` (regressions redirect per run via
-  `XMLIBDIR=`); waves `sim/waves.shm`. `verif_matrix.yaml` is append-only
+  xrun pick; `sim/scripts/record_result.py` recovers the used seed from
+  the log into the `verif_matrix.yaml` record.
+- Verdict: exit status (non-zero = fail) + one-line `record_result: ...
+  PASS/FAIL` + `CFG_BANNER` config-signature banner + appended
+  `verif_matrix.yaml` record. No JSON on stdout; the matrix record is the
+  machine-readable verdict.
+- Run artifacts: logs `sim/results/<config>/<test>_seed<seed>.log`; work
+  library `sim/xcelium.d` (xrun recompiles when config flags change);
+  waves `sim/waves.shm`. `verif_matrix.yaml` is append-only
   history — never delete or rewrite it.
-- Regression: one vsif per configuration (`sim/<ip>_<config>.vsif`,
-  session `<ip>_<config>`), launched by `make regress` through vManager;
+- Regression: one vsif per configuration (`sim/<ip>_<config>.vsif`;
+  `sim/<ip>.vsif` for the default config; session `<ip>_<config>`),
+  launched by `make regress` through vManager;
   every vsif run goes back through `make run` (single source of truth).
 - Coverage (`dv cov` equivalents): NOT wired by default — state this
   instead of improvising IMC calls; record the site's coverage flow here
   when it lands.
 - Log access: `python3 .github/skills/log-triage/scripts/triage_log.py
-  sim/logs/<log>` (first-error JSON); targeted `grep` otherwise.
-- chkq: compile the kit via the commented block in `sim/tb.f`; run with
-  `PLUSARGS='+CHKQ_ENABLE' XRUN_OPTS='-access +rwc'`; coverage stays off.
+  sim/results/<config>/<log>` (first-error JSON); targeted `grep` otherwise.
+- chkq: compile the kit via an extra filelist (`EXTRA_FILELISTS=`); run
+  with `XRUN_OPTS='+CHKQ_ENABLE -access +rwc'`; coverage stays off.
 - Environment setup: whatever makes `xrun` resolve on the host (module
   load etc.) — the Makefile does not source tool environments.
 

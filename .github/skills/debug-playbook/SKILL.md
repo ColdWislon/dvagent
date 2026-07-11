@@ -18,7 +18,7 @@ The dv-debug agent owns the discipline (same seed, one hypothesis,
 ## Scoreboard mismatch tracing
 - Key on the transaction identifier from the error message; grep both
   expected-push and actual-push messages for that id
-  (`grep <txn_id> sim/logs/<log>`; wrapper: `dv log grep`).
+  (`grep <txn_id> sim/results/<config>/<log>`; wrapper: `dv log grep`).
 - Divergence questions in order: (1) same transaction observed on both
   sides? (missing/extra = monitor or ordering issue) (2) same fields
   compared? (3) model computed per SPEC? Justify any model fix against

@@ -36,28 +36,29 @@ make matrix                          # the run is on record
 ```
 
 Each IP lands in its own `<ip>_verif/` (agents, env, sequences, tests, tb,
-sim flow, per-IP `docs/CLAUDE.md` + vplan skeleton + chkq staging), with
-`GETTING_STARTED.md` inside as the newcomer walkthrough. The Copilot pack
-stays **once, at this repo root** — environments generated inside the
-workspace don't duplicate it. Re-running the generator never overwrites
-your edits; adding an agent/VIP to the YAML adds just the new files.
+sim flow, `verif_matrix.yaml`), with a `README.md` inside as the newcomer
+walkthrough and its own `.github/` Copilot kit (env-specific instructions +
+six chained phase prompts: connect-dut → implement-agents → write-tests →
+triage-regression → coverage-closure → verif-closure). Re-running the
+generator never overwrites your edits; adding an agent/VIP to the YAML adds
+just the new files (stale files needing manual wiring are listed).
 
 ## What's in the template
 
 | Where | What |
 |---|---|
 | `.github/` | the Copilot DV agent pack: 7 `dv-*` agents, 13 prompts (incl. `/start-here` onboarding), 30 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown |
-| `uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 70+ tests). Also usable standalone — it stages the pack into envs generated outside a workspace |
+| `uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 30-test suite). Also usable standalone — every generated env carries its own `.github/` Copilot kit |
 | `chkq-kit/` | checker-qualification SV kit (negative tests: expectation catcher, guarded injector, base test) — staged into every env's `dv/tests/negative/` |
 | `external-vplan-kit/` | out-of-VS-Code vplan drafting for table/diagram-heavy PDF specs |
 | `docs/methodology/` | the Definition of Done the reviewer audits against |
 | `cockpit.ini` | verif-cockpit configuration (scans `dv,agents,env,seq_lib,tests,tb`) |
 | `USERGUIDE.md` | **engineers start here** — agent workflow quick start |
 
-Single source of truth: the per-IP files (`docs/CLAUDE.md`, `docs/vplan.md`,
-`dv/lists/*`, `dv/cov/exclusion_requests.md`, `chkq_paths.svh`) are rendered
-by uvm-gen from `uvm-gen/uvm_gen/templates/copilot/` — there is no second
-copy to drift.
+Single source of truth: each env's Copilot collateral
+(`.github/copilot-instructions.md` + the six phase prompts) is rendered by
+uvm-gen from `uvm-gen/uvmgen/templates/copilot/` with the IP's real names,
+paths and commands — there is no second copy to drift.
 
 ## The agent set
 
@@ -76,7 +77,7 @@ copy to drift.
 Agents appear in the Chat view agent picker after the files are on the
 branch (reload window if needed). `dv-test-writer` and `dv-coverage-closer`
 hand off to `dv-reviewer` at the end of a session. Newcomers: the generated
-`GETTING_STARTED.md`, then `/start-here`.
+env's `README.md`, then `/start-here`.
 
 Vplan drafting: `/generate-vplan <ip> <spec.pdf>` for text-dominant PDFs
 (pdftotext extraction, page-cited items, human-approved draft);
@@ -90,8 +91,8 @@ the second vendor).
 `sim/Makefile` (`make compile/run/waves/regress/matrix`; the contract maps
 every abstract `dv <verb>` onto it — teams may layer a `dv` wrapper CLI on
 top, recorded in the `dv-wrapper` flow-reference skill). A run's verdict is
-its exit status, the `cfg_tool: PASS/FAIL` line, the `[UVM_GEN_CFG]` config
-signature banner, and the record appended to `verif_matrix.yaml` — no claim
+its exit status, the `record_result: ... PASS/FAIL` line, the `CFG_BANNER`
+config signature banner, and the record appended to `verif_matrix.yaml` — no claim
 without that evidence, per the session report contract (machine-readable
 sidecars in `dv/status/` feed the cockpit).
 

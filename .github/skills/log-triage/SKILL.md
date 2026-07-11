@@ -24,7 +24,7 @@ post-regression (or wire it behind `dv log first-error`) to batch-produce
 signatures; it is not an excuse for an agent to bypass the wrapper.
 
 ## Procedure
-1. Get the first error: `python3 .github/skills/log-triage/scripts/triage_log.py sim/logs/<log>`
+1. Get the first error: `python3 .github/skills/log-triage/scripts/triage_log.py sim/results/<config>/<log>`
    in a session (wrapper: `dv log first-error <log>`), or
    `scripts/triage_log.py <logfile ...>` CI-side (parses, classifies,
    extracts first error + signature, emits JSON).

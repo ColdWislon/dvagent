@@ -91,9 +91,9 @@ team `dv` wrapper where one exists — see the `dv-wrapper` skill):
 ```bash
 cd <ip>_verif/sim
 make compile
-make run TEST=<feat>_test SEED=<N>     # exit status + cfg_tool PASS/FAIL +
-                                       # verif_matrix.yaml record = the verdict
-python3 ../../.github/skills/log-triage/scripts/triage_log.py logs/<log>
+make run TEST=<feat>_test SEED=<N>     # exit status + record_result PASS/FAIL
+                                       # + verif_matrix.yaml record = the verdict
+python3 ../../.github/skills/log-triage/scripts/triage_log.py results/<config>/<log>
 # wrapper equivalents: dv compile <ip> / dv sim ... --seed N / dv log first-error
 ```
 

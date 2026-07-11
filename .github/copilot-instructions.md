@@ -16,19 +16,20 @@ verb; in this infrastructure it resolves per this table (run from
 | `dv compile <ip>` | `make compile` (elab-only, stub DUT ok) |
 | `dv sim <ip> <test> --seed N` | `make run TEST=<test> SEED=N` |
 | `dv sim ... --waves` | `make waves TEST=<test>` |
-| `dv sim ... --verbosity UVM_HIGH` | `make run ... VERBOSITY=UVM_HIGH` |
-| plusargs | `make run ... PLUSARGS='+X +Y=2'` |
-| configuration select / all-passive | `make run ... CFG=../cfg/<cfg>.yaml` / `PASSIVE=1` |
+| `dv sim ... --verbosity UVM_HIGH` | `make run ... UVM_VERBOSITY=UVM_HIGH` |
+| plusargs / extra xrun flags | `make run ... XRUN_OPTS='+X +Y=2'` |
+| configuration select / all-passive | `make run ... CFG=cfg/<cfg>.yaml` / `XRUN_OPTS=+<IP>_PASSIVE=all` |
 | `dv regress <ip>` | `make regress` (vManager vsif); status: `make matrix` |
-| `dv log first-error <log>` | `python3 .github/skills/log-triage/scripts/triage_log.py sim/logs/<log>` |
-| `dv log grep` | targeted `grep` on `sim/logs/<log>` |
+| `dv log first-error <log>` | `python3 .github/skills/log-triage/scripts/triage_log.py sim/results/<config>/<log>` |
+| `dv log grep` | targeted `grep` on `sim/results/<config>/<log>` |
 | `dv cov report/delta/merge` | not wired by default — say so; never improvise IMC calls |
 | `dv lint --diff` | `python3 .github/skills/deprecation-lint/scripts/lint.py <tb paths>` |
 | `dv cockpit <ip>` | `python3 .github/skills/verif-cockpit/scripts/cockpit.py` (config: `cockpit.ini`) |
 
 Verdict contract in this flow: `make run` exits non-zero on any failure;
-`sim/scripts/cfg_tool.py` prints a one-line `cfg_tool: PASS/FAIL` verdict,
-every run prints the `[UVM_GEN_CFG]` config-signature banner, and appends a
+`sim/scripts/record_result.py` prints a one-line `record_result: ...
+PASS/FAIL` verdict, every run prints the `CFG_BANNER` config-signature
+banner, and appends a
 machine-readable record to `verif_matrix.yaml` (config_name, param hash,
 test, seed, result, UVM error/fatal counts, date, git rev). Quote the matrix
 record or the `--- UVM Report Summary ---` block as your verdict. Do not
@@ -132,8 +133,8 @@ field) corrupt sessions silently when guessed. Resolution order:
    agents may edit — factual flow knowledge only, never rules.
 
 The same protocol applies to an UNPARSEABLE result: if a run's output
-matches neither the uvm-gen verdict shape (cfg_tool line + UVM summary +
-matrix record) nor the wrapper's JSON, stop, show the raw output, and ask
+matches neither the uvm-gen verdict shape (record_result line + UVM summary
++ matrix record) nor the wrapper's JSON, stop, show the raw output, and ask
 — do not improvise a parse.
 
 ## Negative (checker-qualification) tests
@@ -161,11 +162,12 @@ no `#delay` in sequences, every covergroup bin maps to a vplan reference.
     monitor, agent cfg, agent, base sequence, package (one dir per
     interface; stimulus items/base sequences live here)
   - `env/` — `<ip>_env`, `<ip>_env_cfg`, `<ip>_scoreboard`,
-    `<ip>_<name>_cov` coverage subscribers, `<ip>_vsequencer`, RAL
-    (`<ip>_reg_block`/`_reg_adapter`), Cadence VIP wrappers
+    `<ip>_<name>_coverage` subscribers, `<ip>_virtual_sequencer`, RAL
+    (`<ip>_reg_block`/`_reg_adapter`); `vip/<name>_vip/` — Cadence VIP wrappers
   - `seq_lib/` — virtual sequences; `tests/` — test classes
-  - `tb/` — `tb_top.sv` + generated DUT stub; `sim/` — Makefile,
-    `.f` filelists, vsif, `scripts/cfg_tool.py`; logs in `sim/logs/`
+  - `tb/` — `<ip>_tb_top.sv` + generated DUT stub; `sim/` — Makefile,
+    `.f` filelists, vsif, `scripts/` (cfg2args.py, record_result.py,
+    matrix_report.py); logs in `sim/results/<config>/`
   - `cfg/` — one YAML per configuration; `verif_matrix.yaml` — append-only
     run records (sign-off evidence)
 - Per-IP context:      `docs/CLAUDE.md` (read it before working on an IP)

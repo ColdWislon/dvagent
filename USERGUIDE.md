@@ -16,8 +16,8 @@ MR — agent-authored or not.
 
 The flow in one line: `make compile`, `make run TEST=<test> SEED=<n>`,
 `make waves`, `make regress`, `make matrix` — from `<ip>_verif/sim/`.
-A run's verdict is its exit status, the `cfg_tool: PASS/FAIL` line, and
-the record it appends to `verif_matrix.yaml`.
+A run's verdict is its exit status, the `record_result: ... PASS/FAIL`
+line, and the record it appends to `verif_matrix.yaml`.
 
 ## One-time setup
 
@@ -34,7 +34,7 @@ the record it appends to `verif_matrix.yaml`.
 4. Work in your own **git worktree** per agent session — parallel agents
    sharing a snapshot directory will corrupt each other's builds.
 5. Brand new to the repo (or inheriting a block)? Read the environment's
-   `GETTING_STARTED.md` (no Copilot required), then type `/start-here`
+   `README.md` (no Copilot required), then type `/start-here`
    in Copilot chat: a read-only guided session that tours the
    environment, runs the smoke test with you, and hands you ranked
    first tasks.
@@ -85,7 +85,7 @@ risks, and ranked next actions as ready-to-run commands.
    plan — 30 seconds now saves an hour later.
 3. It implements, then loops: `make compile` → `make run TEST=... SEED=...`
    for 3 seeds → coverage-bin check. You'll see every verdict (the
-   `cfg_tool: PASS/FAIL` lines and matrix records); it may ask you a
+   `record_result: ... PASS/FAIL` lines and matrix records); it may ask you a
    question if it hits an unknown (answer it — answers persist).
 4. It produces the session report (files, verbatim verdicts, seeds,
    what was NOT verified) and offers the reviewer handoff. Take it.
@@ -146,7 +146,7 @@ risks, and ranked next actions as ready-to-run commands.
   knowledgeable, occasionally overconfident junior engineer: treat its
   MRs with exactly the scrutiny that description deserves.
 - Never paste raw sim logs into chat; point the agent at the log path
-  (`sim/logs/<test>_<config>_s<seed>.log`) — it has the log-triage
+  (`sim/results/<config>/<test>_seed<seed>.log`) — it has the log-triage
   script for that.
 
 ## Your responsibilities (the short version)
