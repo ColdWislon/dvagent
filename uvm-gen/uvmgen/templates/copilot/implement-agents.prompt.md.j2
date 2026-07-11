@@ -1,0 +1,55 @@
+---
+mode: agent
+description: "Phase 2 — implement the {{ ip }} protocol drivers/monitors/items"
+---
+
+# Implement the protocol agents ({{ ip }}, phase 2)
+
+## Precondition
+
+Phase 1 done: `make -C sim compile` passes against the real RTL (no DUT stub
+note). See `connect-dut.prompt.md`.
+
+## Goal
+
+Replace every `TODO(protocol)` stub with the real protocol logic so the smoke
+test exercises the actual DUT interfaces.
+
+## Relevant files (per agent)
+
+{% for a in agents %}
+* `agents/{{ a.name }}_agent/{{ ip }}_{{ a.name }}_seq_item.sv` — real transaction fields + constraints
+* `agents/{{ a.name }}_agent/{{ ip }}_{{ a.name }}_driver.sv` — pin-level driving in `drive_item()` / `drive_idle()`
+* `agents/{{ a.name }}_agent/{{ ip }}_{{ a.name }}_monitor.sv` — transaction reconstruction in `run_phase()`
+* `agents/{{ a.name }}_agent/{{ ip }}_{{ a.name }}_if.sv` — signals, clocking blocks, protocol assertions
+{% endfor %}
+{% for v in vips %}
+* `vip/{{ v.name }}_vip/` — Cadence {{ v.title }} VIP wrapper: follow the TODO(vip)
+  markers (import the VIP package, create/program its config from
+  `{{ ip }}_{{ v.name }}_vip_cfg`, forward monitor traffic + sequencer). Activate the
+  compile lines in `sim/vip_{{ v.protocol }}.f` — requires `$CDN_VIP_ROOT`.
+{% endfor %}
+
+## Rules
+
+* Drivers/monitors use ONLY `cfg.vif` (set through `{{ ip }}_env_cfg`) — never
+  fetch interfaces from the config_db or reference the tb hierarchy.
+* Keep passive-mode behavior intact: monitor-only when
+  `cfg.is_active == UVM_PASSIVE` (drivers/sequencers are not built).
+* Monitors must reconstruct transactions from pins (not echo driver state),
+  so passive SoC reuse observes real bus traffic.
+
+## Commands
+
+```bash
+make -C sim compile
+make -C sim run TEST={{ ip }}_smoke_test
+make -C sim run TEST={{ ip }}_smoke_test XRUN_OPTS=+{{ IP }}_PASSIVE=all   # reuse check
+```
+
+## Done when
+
+`make -C sim run TEST={{ ip }}_smoke_test` completes with `UVM_ERROR : 0` and
+the scoreboard reports observed transactions; the `+{{ IP }}_PASSIVE=all` run
+also passes (no stimulus, no errors). Then continue with
+`write-tests.prompt.md`.

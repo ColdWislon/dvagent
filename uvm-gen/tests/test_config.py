@@ -1,184 +1,114 @@
+"""Config loading: extends deep-merge, param hashing, validation."""
+
 import pytest
 
-from uvm_gen.config import (
-    ConfigError,
-    canonical_params,
-    deep_merge,
-    fnv1a32,
-    load_config,
-    load_raw_config,
-    normalize_config,
-    param_hash_hex,
-)
+from uvmgen.config import ConfigError, deep_merge, load_config, param_hash, validate
 
 
-def write(path, text):
-    path.write_text(text, encoding="utf-8")
+def write(tmp_path, name, text):
+    path = tmp_path / name
+    path.write_text(text)
     return path
 
 
-# ---------------------------------------------------------------------------
-# hashing
-# ---------------------------------------------------------------------------
-
-def test_fnv1a32_known_vectors():
-    assert fnv1a32("") == 0x811C9DC5          # offset basis
-    assert fnv1a32("a") == 0xE40C292C         # FNV-1a reference vector
-    assert fnv1a32("foobar") == 0xBF9CF968    # FNV-1a reference vector
-
-
-def test_canonical_params_and_hash_are_sorted_and_stable():
-    cfg = normalize_config(
-        {"ip_name": "x", "params": {"B": 2, "A": 1, "C": "fast"}}
-    )
-    assert canonical_params(cfg["params"]) == "A=1,B=2,C=fast"
-    assert param_hash_hex(cfg["params"]) == f"0x{fnv1a32('A=1,B=2,C=fast'):08x}"
-
-
-# ---------------------------------------------------------------------------
-# deep merge / extends
-# ---------------------------------------------------------------------------
-
-def test_deep_merge_semantics():
-    base = {"a": {"x": 1, "y": 2}, "l": [1, 2], "s": "base", "keep": 7}
-    over = {"a": {"y": 3, "z": 4}, "l": [9], "s": "child"}
-    merged = deep_merge(base, over)
-    assert merged == {
-        "a": {"x": 1, "y": 3, "z": 4},
-        "l": [9],          # lists replace wholesale
-        "s": "child",      # scalars replace
-        "keep": 7,
-    }
+BASE_YAML = """\
+ip_name: my_ip
+dut:
+  module: my_ip_top
+  rtl_filelist: ../rtl/dut.f
+params:
+  DATA_W: 32
+  FIFO_DEPTH: 16
+agents:
+  - name: ctrl
+    mode: active
+vips:
+  - protocol: apb
+    name: apb_cfg
+    role: master
+"""
 
 
-def test_extends_chain_merges_child_wins(tmp_path):
-    write(tmp_path / "grand.yaml", "ip_name: my_ip\nparams: {A: 1, B: 1}\n")
-    write(tmp_path / "base.yaml", "extends: grand.yaml\nparams: {B: 2, C: 2}\n")
-    child = write(
-        tmp_path / "child.yaml",
-        "extends: base.yaml\nconfig_name: small\nparams: {C: 3}\n",
-    )
-    raw, chain = load_raw_config(child)
-    assert [p.name for p in chain] == ["grand.yaml", "base.yaml", "child.yaml"]
-    assert raw["params"] == {"A": 1, "B": 2, "C": 3}
-    assert raw["config_name"] == "small"
-    assert "extends" not in raw
+def test_deep_merge_child_wins_and_recurses():
+    base = {"a": 1, "d": {"x": 1, "y": 2}, "l": [1, 2]}
+    child = {"a": 9, "d": {"y": 7, "z": 3}, "l": [5]}
+    merged = deep_merge(base, child)
+    assert merged == {"a": 9, "d": {"x": 1, "y": 7, "z": 3}, "l": [5]}
+    # inputs untouched
+    assert base["d"] == {"x": 1, "y": 2}
 
 
-def test_extends_cycle_is_an_error(tmp_path):
-    write(tmp_path / "a.yaml", "extends: b.yaml\nip_name: x\n")
-    write(tmp_path / "b.yaml", "extends: a.yaml\n")
+def test_extends_chain_and_merge(tmp_path):
+    write(tmp_path, "base.yaml", BASE_YAML)
+    child = write(tmp_path, "small.yaml",
+                  "extends: base.yaml\nconfig_name: small\nparams:\n  DATA_W: 16\n")
+    merged, chain = load_config(child)
+    assert merged["config_name"] == "small"
+    assert merged["params"] == {"DATA_W": 16, "FIFO_DEPTH": 16}   # deep-merged
+    assert merged["agents"][0]["name"] == "ctrl"                  # inherited
+    assert [p.name for p in chain] == ["base.yaml", "small.yaml"]
+
+
+def test_extends_cycle_detected(tmp_path):
+    write(tmp_path, "a.yaml", "extends: b.yaml\nip_name: x\n")
+    write(tmp_path, "b.yaml", "extends: a.yaml\n")
     with pytest.raises(ConfigError, match="circular"):
-        load_raw_config(tmp_path / "a.yaml")
+        load_config(tmp_path / "a.yaml")
 
 
-def test_extends_missing_base_is_an_error(tmp_path):
-    cfg = write(tmp_path / "a.yaml", "extends: nope.yaml\nip_name: x\n")
+def test_missing_file_is_config_error(tmp_path):
     with pytest.raises(ConfigError, match="not found"):
-        load_raw_config(cfg)
+        load_config(tmp_path / "nope.yaml")
 
 
-def test_extends_duplicate_basenames_rejected(tmp_path):
-    sub = tmp_path / "sub"
-    sub.mkdir()
-    write(sub / "my.yaml", "ip_name: x\n")
-    cfg = write(tmp_path / "my.yaml", "extends: sub/my.yaml\n")
-    with pytest.raises(ConfigError, match="distinct file names"):
-        load_config(cfg)
+def test_param_hash_stable_and_value_sensitive():
+    a = {"params": {"DATA_W": 32, "FIFO_DEPTH": 16}}
+    b = {"params": {"FIFO_DEPTH": 16, "DATA_W": 32}}   # different key order
+    c = {"params": {"DATA_W": 64, "FIFO_DEPTH": 16}}
+    assert param_hash(a) == param_hash(b)
+    assert param_hash(a) != param_hash(c)
+    assert len(param_hash(a)) == 8
 
 
-# ---------------------------------------------------------------------------
-# validation
-# ---------------------------------------------------------------------------
-
-def test_ip_name_required_and_identifier():
-    with pytest.raises(ConfigError, match="ip_name"):
-        normalize_config({})
-    with pytest.raises(ConfigError, match="identifier"):
-        normalize_config({"ip_name": "my ip"})
-
-
-def test_agent_validation():
-    with pytest.raises(ConfigError, match="active|passive"):
-        normalize_config({"ip_name": "x", "agents": [{"name": "a", "mode": "monitor"}]})
-    with pytest.raises(ConfigError, match="unique"):
-        normalize_config({"ip_name": "x", "agents": [{"name": "a"}, {"name": "a"}]})
-    with pytest.raises(ConfigError, match="reserved"):
-        normalize_config({"ip_name": "x", "agents": [{"name": "env"}]})
-    cfg = normalize_config({"ip_name": "x", "agents": [{"name": "a"}]})
-    assert cfg["agents"] == [{"name": "a", "mode": "active"}]
-
-
-def test_vip_validation_and_roles():
-    with pytest.raises(ConfigError, match="apb/ahb/i3c"):
-        normalize_config({"ip_name": "x", "vips": [{"protocol": "axi", "name": "v"}]})
-    with pytest.raises(ConfigError, match="role"):
-        normalize_config(
-            {"ip_name": "x", "vips": [{"protocol": "apb", "name": "v", "role": "controller"}]}
-        )
-    # i3c accepts legacy master/slave and maps to controller/target
-    cfg = normalize_config(
-        {"ip_name": "x", "vips": [{"protocol": "i3c", "name": "v", "role": "master"}]}
-    )
-    assert cfg["vips"][0]["role"] == "controller"
-    assert cfg["vips"][0]["ibi_enable"] is True
-    # defaults
-    cfg = normalize_config({"ip_name": "x", "vips": [{"protocol": "ahb", "name": "v"}]})
-    assert cfg["vips"][0]["role"] == "master"
-    # agent/vip name collision
-    with pytest.raises(ConfigError, match="unique"):
-        normalize_config(
-            {
-                "ip_name": "x",
-                "agents": [{"name": "v"}],
-                "vips": [{"protocol": "apb", "name": "v"}],
-            }
-        )
-
-
-def test_param_validation():
-    cfg = normalize_config(
-        {
-            "ip_name": "x",
-            "params": {
-                "B_BOOL": True,
-                "A_INT": 5,
-                "C_STR": "fast",
-                "D_DP": {"value": 4, "style": "defparam"},
-            },
-        }
-    )
-    names = [p["name"] for p in cfg["params"]]
-    assert names == sorted(names)
-    by_name = {p["name"]: p for p in cfg["params"]}
-    assert by_name["B_BOOL"]["value"] == 1          # bools become ints
-    assert by_name["D_DP"]["style"] == "defparam"
-
-    with pytest.raises(ConfigError, match="defparam"):
-        normalize_config(
-            {"ip_name": "x", "params": {"P": {"value": "abc", "style": "defparam"}}}
-        )
-    with pytest.raises(ConfigError, match="style"):
-        normalize_config(
-            {"ip_name": "x", "params": {"P": {"value": 1, "style": "plusarg"}}}
-        )
-    with pytest.raises(ConfigError, match="32-bit"):
-        normalize_config({"ip_name": "x", "params": {"P": 2**40}})
-    with pytest.raises(ConfigError, match="plusargs"):
-        normalize_config({"ip_name": "x", "params": {"P": "has space"}})
-    with pytest.raises(ConfigError, match="int/bool/string"):
-        normalize_config({"ip_name": "x", "params": {"P": 1.5}})
-
-
-def test_dut_defaults_and_checks():
-    cfg = normalize_config({"ip_name": "x"})
-    assert cfg["dut"]["module"] == "x"
-    assert cfg["dut"]["rtl_filelist"] is None
+def test_validate_normalizes(tmp_path):
+    write(tmp_path, "base.yaml", BASE_YAML)
+    merged, _ = load_config(tmp_path / "base.yaml")
+    cfg = validate(merged)
+    assert cfg["ip_name"] == "my_ip"
     assert cfg["config_name"] == "default"
-    with pytest.raises(ConfigError, match="tb_top"):
-        normalize_config({"ip_name": "x", "dut": {"module": "tb_top"}})
+    assert cfg["param_style"] == "define"
+    assert cfg["agents"] == [{"name": "ctrl", "mode": "active"}]
+    assert cfg["vips"][0]["role"] == "master"
 
 
-def test_unknown_top_level_keys_warn_not_error():
-    cfg = normalize_config({"ip_name": "x", "future_key": 1})
-    assert any("future_key" in w for w in cfg["warnings"])
+def test_validate_rejects_bad_input():
+    with pytest.raises(ConfigError, match="ip_name"):
+        validate({"ip_name": "1bad"})
+    with pytest.raises(ConfigError, match="mode"):
+        validate({"ip_name": "x", "agents": [{"name": "a", "mode": "weird"}]})
+    with pytest.raises(ConfigError, match="protocol"):
+        validate({"ip_name": "x", "vips": [{"protocol": "pcie", "name": "p"}]})
+    with pytest.raises(ConfigError, match="role"):
+        validate({"ip_name": "x",
+                  "vips": [{"protocol": "apb", "name": "p", "role": "queen"}]})
+    with pytest.raises(ConfigError, match="duplicate"):
+        validate({"ip_name": "x",
+                  "agents": [{"name": "a"}, {"name": "a"}]})
+    with pytest.raises(ConfigError, match="param_style"):
+        validate({"ip_name": "x", "param_style": "plusarg"})
+
+
+def test_i3c_role_aliases_and_defaults():
+    cfg = validate({"ip_name": "x",
+                    "vips": [{"protocol": "i3c", "name": "bus", "role": "master"}]})
+    assert cfg["vips"][0]["role"] == "controller"   # alias normalized
+    cfg = validate({"ip_name": "x",
+                    "vips": [{"protocol": "i3c", "name": "bus"}]})
+    assert cfg["vips"][0]["role"] == "controller"   # sensible default
+
+
+def test_bools_normalized_to_int():
+    cfg = validate({"ip_name": "x", "params": {"EN": True},
+                    "defines": {"OFF": False}})
+    assert cfg["params"]["EN"] == 1
+    assert cfg["defines"]["OFF"] == 0

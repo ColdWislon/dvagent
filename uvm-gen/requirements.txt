@@ -1,7 +1,5 @@
-# uvm-gen runtime dependencies (Python 3.8+).
-# The generated sim flow (sim/scripts/cfg_tool.py) needs PyYAML only.
 Jinja2>=3.0
-PyYAML>=5.4
+PyYAML>=6.0
 
-# Development/test:
-#   pip install pytest
+# development / self-test
+pytest>=7.0

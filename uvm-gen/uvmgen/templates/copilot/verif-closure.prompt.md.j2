@@ -1,0 +1,47 @@
+---
+mode: agent
+description: "Phase 6 — {{ ip }} multi-configuration verification sign-off"
+---
+
+# Verification closure ({{ ip }}, phase 6)
+
+## Precondition
+
+Phase 5 done: regression clean and coverage goals met for the configurations
+verified so far. See `coverage-closure.prompt.md`.
+
+## Goal
+
+Prove EVERY shipping configuration of {{ ip }} meets the sign-off criteria,
+make `verif_matrix.yaml` reflect it, and produce a closure summary.
+
+## Sign-off criteria (per configuration = per `cfg/*.yaml`)
+
+1. A `verif_matrix.yaml` entry exists for the configuration's param hash
+   (i.e. it actually ran — distinct `config_name` + `param_hash` per config).
+2. Full regression pass: 0 fails in the latest records for that hash.
+3. Coverage goal met (recorded coverage % or documented waiver).
+4. Records are current: latest `git_rev` matches the sign-off revision.
+
+## Procedure
+
+1. Enumerate configurations: every YAML in `cfg/` (mind `extends` bases that
+   are not themselves shipping configs).
+2. For each configuration missing/failing/stale in `make -C sim matrix`:
+   `make -C sim regress CFG=cfg/<config>.yaml`
+   (each config has its own vsif/session `{{ ip }}_<config_name>`; generate a
+   missing vsif by re-running uvm-gen with that config YAML).
+3. Verify each ran with the EXPECTED parameters: the `CFG_BANNER` in the log
+   and the `param_hash` in the matrix must match the YAML
+   (`sim/scripts/cfg2args.py --param-hash cfg/<config>.yaml`).
+4. Write the closure summary (e.g. `closure_summary.md` at the env root):
+   * table from `make -C sim matrix` (or `matrix_report.py --yaml`)
+   * per config: tests run, seeds, coverage %, waivers, open RTL tickets
+   * sign-off git revision and date.
+
+## Done when
+
+`make -C sim matrix` shows CLEAN with met coverage for every shipping
+configuration at the sign-off revision, and the closure summary exists. The
+{{ ip }} environment is then also ready for SoC integration
+(`+{{ IP }}_PASSIVE=all` smoke run documented in the summary proves it).

@@ -1,0 +1,52 @@
+---
+mode: agent
+description: "Phase 4 — triage {{ ip }} regression failures, fix, and re-run"
+---
+
+# Triage the regression ({{ ip }}, phase 4)
+
+## Precondition
+
+Phase 3 done: a test list exists in `sim/{{ vsif_name }}` and a regression has
+been launched (`make -C sim regress`, vManager session
+`{{ ip }}_<config_name>`). See `write-tests.prompt.md`.
+
+## Goal
+
+Parse the regression outcome, classify every failure, apply or propose fixes,
+and re-run until the regression is clean (or every remaining failure is a
+ticketed RTL issue).
+
+## Where the evidence lives
+
+* `verif_matrix.yaml` — one record per run: config, param hash, test, seed,
+  pass/fail, log path (`make -C sim matrix` for the summary)
+* `sim/results/<config_name>/<test>_seed<seed>.log` — xrun/UVM log per run
+* `sim/vm_results/` — vManager session output (when launched via `regress`)
+
+## Procedure
+
+1. `make -C sim matrix` → identify FAILING configurations.
+2. For each failing run, open its log and classify:
+   * **compile/elab** — `*E,` before simulation starts;
+   * **UVM_FATAL/UVM_ERROR** — read the first error, not the last;
+   * **timeout/hang** — objection never drops (look for the phase timeout);
+   * **scoreboard mismatch** — TB or RTL? Reproduce first.
+3. Reproduce deterministically with the recorded seed:
+   `make -C sim run TEST=<test> SEED=<seed> CFG=cfg/<config>.yaml`
+   (add `make -C sim waves TEST=<test> SEED=<seed>` for signal-level debug).
+4. Fix TB bugs directly; for suspected RTL bugs write a minimal reproducer
+   and report it (test, seed, config, log excerpt) instead of masking checks.
+5. Re-run the affected tests, then the full regression.
+
+## Rules
+
+* Never weaken a check to make a failure disappear — classify first.
+* Keep fixes config-generic: verify against every `cfg/*.yaml` the failure
+  touches (the param hash in the banner tells you what actually ran).
+
+## Done when
+
+The regression is clean for the target configurations (`make -C sim matrix`
+shows CLEAN, fail count 0) or every residual failure has an RTL ticket with a
+reproducer. Then continue with `coverage-closure.prompt.md`.

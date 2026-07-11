@@ -1,41 +1,33 @@
-# ----------------------------------------------------------------------------
-# Base configuration for the example IP 'my_ip'.
-# Generate with:  ./uvm_gen.py examples/my_ip.yaml -o <workdir>
-# Derived configurations (my_ip_small.yaml / my_ip_large.yaml) extend this
-# file and override config_name + params only.
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Example base configuration for uvm-gen.
+#   python3 uvm_gen.py examples/my_ip.yaml -o /path/to/work
+# Shared spec lives here; per-configuration YAMLs (my_ip_small.yaml,
+# my_ip_large.yaml) extend it and override config_name/params only.
+# ------------------------------------------------------------------------------
 ip_name: my_ip
 
 dut:
   module: my_ip_top
-  rtl_filelist: rtl/my_ip.f        # relative to this YAML; recorded into sim/dut.f
+  rtl_filelist: ../rtl/dut.f      # relative to this file; $VARS are expanded.
+                                  # While it doesn't resolve, the flow uses the
+                                  # generated DUT stub automatically.
 
-# Custom (non-VIP) interfaces: one full UVM agent is generated per entry.
-agents:
+config_name: default
+
+params:                            # RTL parameters/defines -> xrun flags and
+  DATA_W: 32                       # typed fields in my_ip_env_cfg
+  FIFO_DEPTH: 16
+
+# param_style: define              # 'define' (default): +define+NAME=VALUE
+                                   # 'defparam': -defparam <tb>.dut.NAME=VALUE
+
+agents:                            # custom (non-VIP) interfaces
   - name: ctrl
-    mode: active                   # driver + sequencer + monitor
-  - name: irq
-    mode: passive                  # monitor only (RTL/other side drives)
+    mode: active
+  - name: stat
+    mode: passive                  # monitor/coverage only, no driver/sequencer
 
-# Cadence VIP instances (apb | ahb | i3c).
-vips:
+vips:                              # Cadence VIP instances (apb | ahb | i3c)
   - protocol: apb
-    name: apb0
-    role: master                   # apb/ahb: master | slave | passive
-  - protocol: i3c
-    name: i3c0
-    role: controller               # i3c: controller | target | passive
-    ibi_enable: true               # In-Band Interrupts (sensible default)
-
-# RTL/DV parameters for this configuration.
-#  * scalar            -> +define+NAME=VALUE          (style: define)
-#  * style: defparam   -> -defparam tb_top.dut.NAME=VALUE (path: overrides)
-#  * style: env        -> no compile flag (DV-only knob)
-# Every param also becomes a field in my_ip_env_cfg (+PARAM_NAME= plusarg),
-# so env behavior/coverage can adapt per configuration.
-params:
-  DATA_WIDTH: 32
-  NUM_CHANNELS: 2
-  FIFO_DEPTH:
-    value: 8
-    style: defparam
+    name: apb_cfg
+    role: master                   # protocol-appropriate roles; 'monitor' = passive

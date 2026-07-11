@@ -1,10 +1,9 @@
-# 'small' configuration of my_ip: deep-merges onto my_ip.yaml (this file wins).
+# 'small' configuration of my_ip — everything shared comes from the base YAML
+# (deep-merge; this file wins on conflicts).
 extends: my_ip.yaml
+
 config_name: small
 
 params:
-  DATA_WIDTH: 32
-  NUM_CHANNELS: 1
-  FIFO_DEPTH:
-    value: 4
-    style: defparam
+  DATA_W: 16
+  FIFO_DEPTH: 8

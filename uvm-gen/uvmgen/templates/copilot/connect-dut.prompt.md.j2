@@ -1,0 +1,51 @@
+---
+mode: agent
+description: "Phase 1 — connect the {{ dut.module }} DUT ports to the generated interfaces"
+---
+
+# Connect the DUT ({{ ip }}, phase 1)
+
+## Precondition
+
+Freshly generated environment: `make -C sim compile` already passes using the
+DUT stub (`+define+{{ IP }}_USE_DUT_STUB` — the Makefile prints a
+"generated DUT stub" note while `dut.rtl_filelist` does not resolve).
+
+## Goal
+
+Instantiate the real `{{ dut.module }}` in `tb/{{ ip }}_tb_top.sv` with every
+port connected, replacing the `TODO(connect-dut)` block. uvm-gen does not
+parse RTL — the port list comes from the design sources.
+
+## Relevant files
+
+* `tb/{{ ip }}_tb_top.sv` — the `dut` instantiation with TODO(connect-dut)
+* `cfg/{{ cfg_relname }}` — `dut.rtl_filelist` points at the RTL filelist
+  ({{ dut.rtl_filelist or "NOT SET YET — fill it in first" }}; relative paths
+  resolve against the config file's directory)
+{% for a in agents %}
+* `agents/{{ a.name }}_agent/{{ ip }}_{{ a.name }}_if.sv` — '{{ a.name }}' interface signals (extend them to match the DUT port groups)
+{% endfor %}
+
+## Procedure
+
+1. Read the `{{ dut.module }}` module declaration from the RTL to get the
+   exact port list.
+2. Extend each interface with the real protocol signals (keep the clocking
+   blocks in sync), then connect every DUT port either to an interface signal
+   or to `clk`/`rst_n`. Tie off ports that no interface covers yet and leave
+   a `// TODO(protocol)` note.
+3. Ensure the RTL filelist path in `cfg/{{ cfg_relname }}` resolves; the
+   Makefile then compiles the real RTL automatically instead of the stub.
+
+## Commands
+
+```bash
+make -C sim compile
+```
+
+## Done when
+
+`make -C sim compile` is clean (exit 0, no elaboration errors) WITHOUT the
+"generated DUT stub" note — i.e. against the real RTL. Then continue with
+`implement-agents.prompt.md`.

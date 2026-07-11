@@ -1,316 +1,299 @@
-# uvm-gen — UVM IP verification environment generator (Cadence Xcelium)
+# uvm-gen — UVM IP verification environment generator for Cadence Xcelium
 
-`uvm-gen` is a reusable command-line tool that generates a **complete,
-immediately-compiling SystemVerilog/UVM verification environment** for an IP
-from one YAML file: per-interface agents, env with scoreboard/coverage/virtual
-sequencer/RAL hook, Cadence VIP hookups (APB / AHB / MIPI I3C), tests, tb_top,
-and a full Xcelium build/run/regression flow (Makefile + `.f` filelists +
-vManager `.vsif`), with multi-configuration tracking in `verif_matrix.yaml`.
+`uvm-gen` is a reusable command-line tool that generates a complete,
+immediately-compilable SystemVerilog/UVM IP verification environment from one
+YAML file: custom agents, Cadence VIP wrappers, env with scoreboard/coverage/
+virtual-sequencer/RAL hooks, tests, testbench top, an xrun/Xcelium build flow,
+a vManager regression (`.vsif`), multi-configuration verification tracking,
+and a GitHub Copilot agentic kit that can drive the flow from testbench
+creation to sign-off.
 
-Design goals, in order:
+* **Simulator**: Cadence Xcelium only — single-step `xrun`, bundled UVM-1.2
+  (`-uvmhome CDNS-1.2`).
+* **Implementation**: Python 3, Jinja2 templates (`uvmgen/templates/*.j2` —
+  all SV/Makefile content lives in template files, not strings), PyYAML.
 
-1. **Provable out of the box** — `make compile` elaborates cleanly and
-   `make run TEST=<ip>_smoke_test` finishes with `UVM_ERROR : 0` on the
-   freshly generated env (stub DUT, placeholder single-cycle protocol),
-   before any `// TODO` is filled in.
-2. **Never destroys your work** — re-running the generator only creates files
-   that don't exist yet (see [Re-run semantics](#re-run-semantics)).
-3. **Vertically reusable** — the generated env drops into an SoC environment
-   unmodified (see [SoC reuse](#instantiating-the-env-inside-an-soc-env)).
-4. **Multi-configuration first** — parameterizable IPs get one YAML, one vsif
-   and one signature per configuration, and an auditable verification matrix.
-
-Xcelium only: single-step `xrun` with the bundled UVM-1.2
-(`-uvmhome CDNS-1.2`). No other simulators.
+```bash
+pip install -r requirements.txt
+python3 uvm_gen.py examples/my_ip.yaml -o ~/work
+cd ~/work/my_ip_verif/sim
+make compile                        # elaborates cleanly before any TODO is filled
+make run TEST=my_ip_smoke_test      # reset + a few transactions, UVM_ERROR : 0
+```
 
 ---
 
-## Installation
-
-```bash
-pip install -r requirements.txt        # Jinja2 + PyYAML (Python 3.8+)
-```
-
-## Generating an environment
-
-```bash
-./uvm_gen.py <config.yaml> [-o OUTPUT_DIR] [--force] [--dry-run]
-```
-
-Example, using the shipped sample IP:
-
-```bash
-./uvm_gen.py examples/my_ip.yaml -o ~/work
-cd ~/work/my_ip_verif/sim
-make compile                     # elab-only sanity (stub DUT)
-make run TEST=my_ip_smoke_test   # reset + traffic, UVM_ERROR count 0
-```
-
-Generated layout:
+## CLI
 
 ```
-<ip_name>_verif/
-├─ cfg/<ip_name>.yaml        # copy of the input config (canonical home of configs)
-├─ agents/<name>_agent/      # per custom interface: if, seq_item, sequencer,
-│                            #   driver, monitor, cfg object, agent, base seq, pkg
-├─ env/                      # env_cfg, env, scoreboard, per-interface coverage,
-│                            #   virtual sequencer, RAL block+adapter, VIP wrappers
-├─ seq_lib/                  # base + smoke virtual sequences
-├─ tests/                    # <ip>_base_test, <ip>_smoke_test
-├─ tb/                       # tb_top.sv + <dut>_stub.sv
-├─ sim/                      # Makefile, dut.f, tb.f, vip_<proto>.f, <ip>_<cfg>.vsif,
-│                            #   probe.tcl, scripts/cfg_tool.py
-└─ verif_matrix.yaml         # append-only verification records
+uvm_gen.py <config.yaml> [-o OUTPUT_DIR] [--force] [--dry-run] [--version]
 ```
 
-All code is `<ip_name>_`-prefixed, packaged, and free of testbench/hierarchy
-references. Protocol specifics are compiling stubs with `// TODO` markers: the
-placeholder protocol (a single-cycle `valid` pulse) gives the smoke test real
-driver→monitor→scoreboard/coverage traffic until you replace it. Scoreboard
-compare stubs carry `// PLACEHOLDER-CHECK:` markers and the coverage stubs
-prompt for `// VP-xxx` vplan tags — the conventions the DV agent pack and its
-cockpit key on (see below).
+| Option | Meaning |
+|---|---|
+| `config.yaml` | IP configuration (supports `extends:`) |
+| `-o OUTPUT_DIR` | where `<ip_name>_verif/` is created (default `.`) |
+| `--force` | overwrite **everything** (destroys local edits — see re-run policy) |
+| `--dry-run` | show what would be created without writing |
 
-Every environment also gets **`GETTING_STARTED.md`** — the newcomer
-walkthrough from first compile to first real task (and, when the agent pack
-is staged, to the Copilot agent workflow).
+### Re-run policy (never overwrite)
 
-## Configuration schema
+The generator **never overwrites an existing file** — it only creates files
+that don't exist yet:
+
+* Add an agent/VIP to the YAML and re-run → only the new agent/VIP files (and
+  the new per-agent coverage subscriber) appear. Files that would need the new
+  agent wired in (`env/*.sv`, `sim/tb.f`, `tb/*.sv`, ...) are reported as
+  `[stale]` with a hint; wire them by hand — your edits are never touched.
+* Add a new configuration YAML and re-run with it → only `cfg/<file>.yaml`
+  and its `sim/<ip>_<config_name>.vsif` appear.
+* `--force` regenerates every file from the templates (including
+  `verif_matrix.yaml` — keep the env under git).
+
+Re-running with an unchanged YAML changes **zero bytes** (verified by test).
+
+---
+
+## Configuration YAML
 
 ```yaml
-ip_name: my_ip                  # required; SV identifier, prefixes everything
-config_name: default            # configuration identity (default: "default")
-extends: base.yaml              # optional: deep-merge onto another YAML
-                                #   (dicts merge recursively, this file wins;
-                                #    lists/scalars replace)
+ip_name: my_ip                  # prefix for every generated class/package/file
 
 dut:
-  module: my_ip_top             # DUT module name (default: <ip_name>)
-  rtl_filelist: ../rtl/dut.f    # RTL filelist; recorded into sim/dut.f
-                                #   (may itself use -f includes)
+  module: my_ip_top             # instantiated in tb_top (ports left as TODOs)
+  rtl_filelist: ../rtl/dut.f    # design filelist; relative to THIS file, $VARS ok.
+                                # May itself use -f includes. While it does not
+                                # resolve, the flow uses a generated DUT stub.
 
-agents:                         # custom (non-VIP) interfaces -> full UVM agent each
-  - name: ctrl                  # SV identifier, unique
-    mode: active                # active (default) | passive
+config_name: default            # identifies this configuration (multi-config)
+
+params:                         # RTL parameters/defines for this configuration
+  DATA_W: 32                    #   -> xrun flags (+define+NAME=VALUE, or
+  FIFO_DEPTH: 16                #      -defparam <tb>.dut.NAME=VALUE with
+                                #      param_style: defparam)
+                                #   -> string map + typed mirrors (prm_data_w,
+                                #      ...) in <ip>_env_cfg
+# defines:                      # extra +define+ macros (never defparam'd)
+#   EN_FEATURE_X: 1
+# param_style: define           # 'define' (default) | 'defparam'
+
+agents:                         # custom (non-VIP) interfaces
+  - name: ctrl
+    mode: active                # active | passive (default active)
+  - name: stat
+    mode: passive
 
 vips:                           # Cadence VIP instances
   - protocol: apb               # apb | ahb | i3c
-    name: apb0                  # SV identifier, unique
-    role: master                # apb/ahb: master|slave|passive
-  - protocol: i3c               #   i3c: controller|target|passive
-    name: i3c0                  #   (legacy master/slave accepted for i3c)
-    role: controller
-    ibi_enable: true            # i3c only; In-Band Interrupts default
-
-params:                         # RTL/DV parameters of THIS configuration
-  DATA_WIDTH: 32                # scalar -> +define+DATA_WIDTH=32
-  FIFO_DEPTH:
-    value: 8
-    style: defparam             # define (default) | defparam | env
-    path: tb_top.dut.FIFO_DEPTH # defparam target (default: tb_top.dut.<NAME>)
+    name: apb_cfg
+    role: master                # see roles below; 'monitor' => passive wrapper
 ```
 
-Params flow three ways: `+define+`/`-defparam` xrun flags (compile),
-`+PARAM_<name>=` plusargs into `<ip>_env_cfg` fields (so env behavior and
-coverage adapt per configuration), and the config signature (below). Values
-are int/bool/string; strings are limited to `[A-Za-z0-9_.+-]` so they survive
-plusargs and hashing; `defparam` requires an int.
+### `extends:` — multi-configuration IPs without duplication
 
-## Re-run semantics
+One YAML per configuration; shared spec lives in a base file:
 
-The generator **never overwrites an existing file** — it only creates missing
-ones. Consequences:
+```yaml
+# cfg/my_ip_small.yaml
+extends: my_ip.yaml             # resolved relative to this file
+config_name: small
+params:
+  DATA_W: 16                    # deep-merge: FIFO_DEPTH inherited, DATA_W wins
+```
 
-* Editing generated files is always safe; re-running `uvm_gen.py` changes
-  nothing on an untouched env.
-* Adding an agent/VIP to the YAML and re-running creates **just the new
-  agent's files** (plus any missing collateral). Existing env files are left
-  alone; the tool prints the exact hand-wiring checklist (env_cfg, env, pkg,
-  scoreboard, vsequencer, smoke vseq, base test, tb_top, tb.f).
-* Running with a new configuration YAML creates just that configuration's
-  `cfg/` copy and `sim/<ip>_<config_name>.vsif`.
-* `--force` regenerates everything — **except `verif_matrix.yaml`**, which is
-  verification history, not generated code. Nothing is ever deleted.
+Merge semantics: dictionaries merge recursively with the extending file
+winning; lists (`agents:`, `vips:`) replace wholesale; chains
+(`a extends b extends c`) and cycles are handled/detected. The generator
+copies the whole chain into `cfg/` (rewriting `extends:` to the sibling
+basename), so the generated env is self-contained.
+
+### VIP protocols, roles, defaults
+
+| Protocol | Roles | Seeded knobs (edit in `vip/<name>_vip/<ip>_<name>_vip_cfg.sv`) |
+|---|---|---|
+| `apb` | master, slave, monitor | `addr_width=32`, `data_width=32` |
+| `ahb` | master, slave, monitor | `addr_width=32`, `data_width=32` |
+| `i3c` | controller, target, monitor (aliases: master→controller, slave→target) | `ibi_enable=1`, `hot_join_enable=0`, `static_addr=7'h50`, `i3c_only_bus=1` |
+
+Knob values can be overridden directly in the YAML entry
+(e.g. `ibi_enable: false`). `role: monitor` seeds the wrapper passive.
+
+---
+
+## The generated environment
+
+```
+<ip_name>_verif/
+├─ cfg/<config>.yaml           # copies of the input config (whole extends chain)
+├─ agents/<name>_agent/        # per custom interface: interface, seq_item,
+│                              # sequencer, driver, monitor, agent cfg, agent,
+│                              # base sequence, package (compiling stubs with
+│                              # TODO(protocol) markers)
+├─ vip/<name>_vip/             # Cadence VIP wrapper: cfg + agent shell + pkg
+├─ env/                        # env_cfg, env, scoreboard stub, per-interface
+│                              # coverage subscribers, virtual sequencer,
+│                              # RAL stub (reg_block + adapter + predictor wiring)
+├─ seq_lib/                    # base + smoke virtual sequences, package
+├─ tests/                      # <ip>_base_test, <ip>_smoke_test, package
+├─ tb/                         # <ip>_tb_top (clock/reset gen, interfaces, DUT
+│                              # instantiation with TODO ports) + DUT stub
+├─ sim/                        # Makefile, tb.f, vip_<proto>.f, <ip>[_<cfg>].vsif,
+│                              # scripts/ (cfg2args, record_result, matrix_report,
+│                              # waves.tcl)
+├─ .github/                    # Copilot kit: copilot-instructions.md + prompts/
+├─ Makefile                    # thin wrapper around sim/Makefile
+├─ verif_matrix.yaml           # verification tracking (auto-appended)
+└─ README.md, .gitignore
+```
+
+Everything is prefixed `<ip_name>_` and the env/agent/seq code contains **no
+testbench references and no hierarchical config_db lookups** (enforced by the
+test suite) — that's what makes it SoC-reusable unmodified.
+
+### Freshly generated = runnable
+
+The generated stubs implement a generic valid/data handshake so that, before
+any TODO is filled in:
+
+* `make compile` elaborates cleanly (a `+define+<IP>_USE_DUT_STUB`-guarded
+  stub module stands in while `dut.rtl_filelist` doesn't resolve — the
+  Makefile switches to the real RTL automatically once it exists);
+* `make run TEST=<ip>_smoke_test` finishes with `UVM_ERROR : 0`: the smoke
+  virtual sequence runs each active agent's base sequence, monitors observe
+  the traffic, the scoreboard counts it, coverage samples.
+
+---
 
 ## Build & run flow (sim/Makefile)
 
-One `-f` per domain, never merged — design first, then DV
-(`FILELISTS = -f dut.f -f tb.f [-f vip_<proto>.f ...]`; append site extras
-with `make run FILELISTS+='-f soc_glue.f'`):
-
-| Target | Purpose |
-|---|---|
-| `make compile` | elab-only sanity (`xrun -elaborate`) |
-| `make run TEST=<name> [SEED=n] [CFG=...]` | interactive/debug run + matrix record |
-| `make waves TEST=<name>` | run with `-access +rwc` + SHM probing (probe.tcl) |
-| `make run ... PASSIVE=1` | flip all agents passive via `<ip>_env_cfg` (SoC readiness) |
-| `make regress [CFG=...]` | launch the configuration's vsif via vManager |
-| `make matrix` | verification summary from verif_matrix.yaml |
-| `make clean` | remove simulation artifacts |
-
-`sim/dut.f` starts on the generated DUT stub so everything is green
-immediately; once you wire the DUT ports in `tb/tb_top.sv`, flip `dut.f` to
-the real `rtl_filelist` (the path from the YAML is pre-filled, commented).
-
-## Multi-configuration IPs
-
-One YAML per configuration (e.g. `cfg/my_ip_small.yaml`,
-`cfg/my_ip_large.yaml`), each carrying `config_name` + `params:` and typically
-`extends:`-ing the shared base spec. Select at run time:
-
 ```bash
-make run TEST=my_ip_smoke_test CFG=../cfg/my_ip_small.yaml
+make compile                                  # xrun -elaborate sanity
+make run TEST=my_ip_smoke_test [SEED=7]       # single run (SEED=random ok)
+make run TEST=x CFG=cfg/my_ip_small.yaml      # pick a configuration
+make waves TEST=x                             # -access +rwc, SHM probing (waves.shm)
+make regress                                  # vManager launch of the CFG's vsif
+make matrix                                   # config vs. status summary
+make clean
 ```
 
-(`CFG` paths resolve relative to `sim/` or to the `*_verif` root.)
+* **Filelists**: separate `.f` per domain, each passed as its own `-f`
+  (never merged): the DUT filelist from the YAML, `vip_<protocol>.f` per
+  requested VIP protocol, and the generated `tb.f` (packages, interfaces,
+  tb_top in compile order, anchored on `$<IP>_VERIF_HOME`). The ordered list
+  lives in the `FILELISTS` variable (design first, then DV); append extras
+  without touching rules: `make run EXTRA_FILELISTS=soc_glue.f` or
+  `FILELISTS+=...`.
+* **xrun**: single step, `-64bit -sv -uvmhome CDNS-1.2 -timescale 1ns/1ps`;
+  add flags with `XRUN_OPTS=...`.
+* **Cadence VIPs**: located via `$CDN_VIP_ROOT`. If the active config
+  requests VIPs and the variable is unset, `make` fails with a clear error
+  before launching anything. The VIP install path is referenced only from
+  `sim/vip_<protocol>.f` — one file to edit per protocol. The generated
+  wrapper classes are compile-clean shells with `TODO(vip)` markers and
+  example (release-dependent) Cadence class names; wiring the real VIP is a
+  contained, documented edit.
 
-* **Signature banner** — every simulation prints `config_name`, the full
-  param values and an FNV-1a hash of the param set (`[UVM_GEN_CFG]` lines),
-  computed in-simulation from the values actually applied.
-* **verif_matrix.yaml** — every `make run`/`make waves` (and therefore every
-  vManager run) appends one record: config_name, param hash, test, seed,
-  pass/fail + UVM error/fatal counts, date, git revision, coverage % when
-  provided (`--coverage` hook in cfg_tool), log path, params.
-* **`make matrix`** — prints configs × status (runs/pass/fail/coverage/last
-  run/git/tests) for sign-off review; the YAML stays machine-queryable.
-* Params only reach `<ip>_env_cfg` fields if they existed at generation time
-  (the base YAML should declare the full param set); new params still reach
-  the RTL via `+define+`/`-defparam` without regeneration.
+## Multi-configuration verification tracking
 
-## Cadence VIP support (APB, AHB, MIPI I3C)
-
-Each `vips:` entry generates a config object + wrapper component
-(`env/<ip>_<name>_vip.sv`), wired into env/vsequencer, with protocol defaults
-(I3C: controller role, IBI enabled) you edit in one place.
-
-* **`$CDN_VIP_ROOT`** locates the VIP installation. It is the single
-  Makefile-level variable for the VIP path; if the configuration requests a
-  VIP and it is unset, `make` fails immediately with a clear error. Wrapper
-  installs therefore need exactly one edit (`export CDN_VIP_ROOT=...`).
-* Per protocol, `sim/vip_<protocol>.f` is the one file referencing
-  `$CDN_VIP_ROOT`: uncomment its `+define+<IP>_USE_CDN_<PROTO>_VIP` and VIP
-  filelist lines once, per your VIP release.
-* Until then the wrappers compile as placeholders, so a fresh env builds and
-  runs without the VIP installed — VIP-release-specific class names live only
-  in the wrapper files' `` `ifdef `` blocks (fill from the pure-UVM example
-  shipped with your VIP).
+* Configs are selected **at run time** (`CFG=cfg/<file>.yaml`);
+  `sim/scripts/cfg2args.py` (same merge/hash logic as the generator) turns
+  the YAML into xrun flags: `+define+`/`-defparam` for the RTL params plus
+  `+<IP>_CFG_NAME/+<IP>_CFG_HASH/+<IP>_PARAM=` plusargs for the env.
+* **Every simulation prints a config signature banner** (`CFG_BANNER`):
+  config_name, full parameter values, and an 8-hex-char hash of the param
+  set — two different config YAMLs give two distinct banners.
+* **Every `make run` appends a record** to `verif_matrix.yaml` — config_name,
+  param hash, params, test, seed (actual seed extracted from the log),
+  pass/fail, UVM error counts, date, git revision, coverage % when present in
+  the log. Since vManager runs go through `make run`, regressions land there
+  automatically. The file is human-auditable YAML and machine-queryable;
+  concurrent appends are flock-protected.
+* `make matrix` prints the configs × verification status table
+  (`matrix_report.py --yaml` for tooling).
 
 ## Regression: vsif + vManager
 
-`sim/<ip>_<config_name>.vsif` is generated per configuration in vManager
-format: one `session` (named `<ip>_<config_name>`, `top_dir`, `output_mode`),
-a `group` per test category, each `test` with its `run_script`, `count` and
-`sv_seed : random` — the smoke test pre-populated and commented placeholders
-showing the pattern.
+* One generated vsif **per configuration**: `sim/<ip>.vsif` for the default
+  config, `sim/<ip>_<config_name>.vsif` otherwise, with the session named
+  `<ip>_<config_name>` (`top_dir`, `output_mode`), a `group` per test
+  category, and `test` entries carrying `run_script`, `scan_script`,
+  `count`, `seed : random;`. The smoke test is pre-populated; commented
+  placeholder groups show the pattern for new tests.
+* Single source of truth: each `run_script` is
+  `make -C $ENV(PWD) run TEST=<t> CFG=<cfg> SEED=$ATTR(seed)` — vManager runs
+  and local runs share the exact xrun invocation.
+* Launch: `make regress` runs `vmanager -execcmd "launch <vsif>"` from `sim/`
+  (adapt inside the Makefile if your site starts vManager differently).
 
-Every `run_script` goes through `make run`, so vManager and interactive runs
-share **one source of truth** for the xrun invocation, and each run records
-itself in `verif_matrix.yaml`; pass/fail is the run script's exit status
-(non-zero on UVM_ERROR/UVM_FATAL/missing summary). Launch:
+## Vertical reuse — dropping the env into an SoC
 
-```bash
-make regress CFG=../cfg/my_ip_small.yaml
-# == UVM_GEN_SIM_DIR=$PWD vmanager -execcmd "launch my_ip_small.vsif"
-```
-
-Adapt `REGRESS_CMD` in `sim/Makefile` for your site (e.g.
-`vmanager -server host:port -execcmd "launch ..."`). Runs point `XMLIBDIR`
-into vManager's per-run scratch dir so parallel compiles never collide.
-
-## GitHub Copilot DV agent pack integration
-
-When uvm-gen runs from a checkout of its home repository (or is pointed at a
-pack with `--copilot-pack PATH` / `copilot: <path>` in the YAML), it stages
-the team's Copilot agent pack into the generated environment so the env is
-**agent-ready on day one**:
-
-| Staged | Content |
-|---|---|
-| `.github/` | the full pack: 7 `dv-*` agents, 13 prompts (incl. `/start-here` onboarding), 30 skills, instructions — plus the pack's `USERGUIDE.md` |
-| `.github/instructions/uvm-gen-env.instructions.md` | **rendered bridge**: maps the pack's `dv` golden commands onto this env's make flow (verdicts ↔ exit status + banner + `verif_matrix.yaml`, log triage via the pack's `triage_log.py`) |
-| `docs/CLAUDE.md` | per-IP agent context, **pre-filled from the generated architecture** (agents read it before any work) |
-| `docs/vplan.md` | vplan skeleton in the team format (traceability contract; `/generate-vplan` fills it) |
-| `docs/methodology/definition-of-done.md` | the DoD the reviewer audits against |
-| `dv/tests/negative/` | chkq checker-qualification kit — staged, not compiled (activation checklist in `dv/lists/chkq.list`; commented block ready in `sim/tb.f`) |
-| `dv/cov/exclusion_requests.md`, `dv/lists/`, `dv/status/` | exclusion queue, sanity/chkq regression lists (smoke pre-seeded), cockpit/session sidecar dir |
-| `cockpit.ini`, `external-vplan-kit/` | verif-cockpit config, PDF-vision vplan drafting kit |
-
-Control: default is auto (staged when a pack is discoverable, silently
-skipped otherwise); `copilot: false` in the YAML or `--no-copilot` disables;
-`copilot: true` makes a missing pack an error; a path selects the pack
-explicitly. All copies obey the normal re-run policy (never overwritten;
-`--force` regenerates). If `<ip>_verif/` is a subdirectory of a larger repo,
-move `.github/` + `cockpit.ini` to the repo root — VS Code loads the pack
-from there.
-
-## Getting started (newcomers)
-
-Generated envs are self-onboarding: open `<ip>_verif/GETTING_STARTED.md`.
-It walks a new engineer through prerequisites, the first
-compile/smoke/waves/matrix commands (with the expected output), a map of the
-environment, the ordered list of first real tasks (TODO → real protocol →
-DUT hookup → PLACEHOLDER-CHECKs → coverage → RAL → VIP), and — when the pack
-is staged — the Copilot agent workflow, starting with `/start-here` in
-Copilot chat (a read-only guided first session added to the pack by this
-integration).
-
-## Instantiating the env inside an SoC env
-
-The generated env is SoC-ready by construction:
-
-* self-contained `<ip>_`-prefixed packages; no `tb_top`/hierarchy references
-  inside agents/env/sequences (a unit test enforces this);
-* ONE `<ip>_env_cfg` retrieved via `uvm_config_db` — the SoC env sets it from
-  above; **all virtual interfaces live in the config object**;
-* per-agent `is_active`: passive agents build no driver/sequencer while
-  monitor, scoreboard and coverage stay live (`set_all_passive()` helper);
-* RAL: `<ip>_reg_block` instantiates as a child of the SoC register model
-  with an `add_submap()` base-address offset; adapter/predictor/map-sequencer
-  wiring only happens when `ral_env_owns_bus` is set (IP standalone).
+The env's only external contract is one `<ip>_env_cfg` object retrieved via
+`uvm_config_db` — all agent/VIP sub-configs and **all virtual interfaces**
+live inside it:
 
 ```systemverilog
-import my_ip_env_pkg::*;
-
-class soc_env extends uvm_env;
-  my_ip_env     ip0_env;
-  my_ip_env_cfg ip0_cfg;
-
-  virtual function void build_phase(uvm_phase phase);
-    super.build_phase(phase);
-    ip0_cfg = my_ip_env_cfg::type_id::create("ip0_cfg");
-    ip0_cfg.set_all_passive();          // RTL drives the buses at SoC level
-    ip0_cfg.ral_env_owns_bus = 0;       // the SoC owns the register bus
-    ip0_cfg.ctrl_cfg.vif = soc_tb_ctrl_vif;   // from the SoC testbench
-    ip0_cfg.regmodel = soc_regs.ip0;    // my_ip_reg_block child @ SoC offset
-    uvm_config_db #(my_ip_env_cfg)::set(this, "ip0_env", "cfg", ip0_cfg);
-    ip0_env = my_ip_env::type_id::create("ip0_env", this);
-  endfunction
-endclass
+// SoC env build_phase
+my_ip_env_cfg ip_cfg = my_ip_env_cfg::type_id::create("ip_cfg");
+ip_cfg.set_agent_activity("all", UVM_PASSIVE); // RTL drives the buses; monitors,
+                                               // scoreboard, coverage stay live
+ip_cfg.env_owns_bus = 0;                       // no RAL adapter/predictor wiring
+ip_cfg.ctrl_cfg.vif = soc_ctrl_vif;            // SoC-level signals
+uvm_config_db#(my_ip_env_cfg)::set(this, "m_my_ip_env", "cfg", ip_cfg);
+m_my_ip_env = my_ip_env::type_id::create("m_my_ip_env", this);
 ```
 
-Compile collateral: reuse `sim/tb.f` minus its final `tb_top` line. The smoke
-test demonstrates the switch without SoC code:
-`make run TEST=my_ip_smoke_test PASSIVE=1` runs the same env/sequence with
-every agent passive, still `UVM_ERROR : 0`.
+* **Passive flip without source edits**: drivers/sequencers are simply not
+  constructed for passive agents; virtual sequences null-check sequencer
+  handles. Standalone demonstration:
+  `make run TEST=<ip>_smoke_test XRUN_OPTS=+<IP>_PASSIVE=all`.
+* **RAL**: `<ip>_reg_block` is instantiable as a child of the SoC register
+  model with a configurable base offset
+  (`soc_map.add_submap(ip_regs.default_map, 'h4000_0000)`); set
+  `ip_cfg.regmodel = ip_regs` and the env skips building its own. Adapter and
+  predictor are wired only while `env_owns_bus == 1`.
+* **Compilation**: `export <IP>_VERIF_HOME=<env root>` and add
+  `-f $<IP>_VERIF_HOME/sim/tb.f` to the SoC build (exclude the `tb/` entries
+  when the SoC has its own top).
 
-## Acceptance checklist
+## Copilot agentic verification kit
 
-| Criterion | How to check |
+Each generated env carries `.github/copilot-instructions.md` (layout, naming
+prefix, `<ip>_env_cfg`/config_db pattern, is_active rules, multi-config
+scheme, exact commands, never-overwrite policy, per-phase definition of done)
+plus one prompt per phase in `.github/prompts/`, templated with the IP's real
+names/paths/commands. The prompts chain — each states the previous phase's
+done-criterion as its precondition — so an agent can run the whole flow:
+
+1. `connect-dut.prompt.md` — fill tb_top port TODOs; prove `make compile`.
+2. `implement-agents.prompt.md` — fill protocol TODOs; prove the smoke test.
+3. `write-tests.prompt.md` — grow seq_lib/tests; register in the vsif.
+4. `triage-regression.prompt.md` — parse logs/matrix, classify, fix, re-run.
+5. `coverage-closure.prompt.md` — close holes per configuration.
+6. `verif-closure.prompt.md` — all configs CLEAN in `verif_matrix.yaml`,
+   closure summary.
+
+## Acceptance criteria → how they're covered
+
+| Criterion | Where |
 |---|---|
-| Fresh env elaborates cleanly (DUT stubbed) | `make compile` |
-| Smoke test completes, UVM_ERROR 0 | `make run TEST=<ip>_smoke_test` |
-| Re-run changes nothing (unless additions / `--force`) | re-run `uvm_gen.py`; pytest `test_rerun_policy.py` |
-| All agents flip passive via cfg only | `make run TEST=<ip>_smoke_test PASSIVE=1` |
-| vsif syntax-checks and launches smoke | `make regress` |
-| Two config YAMLs → two banners + two matrix entries | `make run CFG=../cfg/a.yaml` / `CFG=../cfg/b.yaml`, then `make matrix` |
+| Fresh env compiles/elaborates before TODOs | DUT stub + compiling protocol stubs; `make compile` |
+| Smoke test runs, UVM_ERROR 0 | generic handshake stubs drive/observe real traffic |
+| Re-run changes nothing without new YAML entries / `--force` | write policy + `tests/test_generate.py` (byte-identical re-run) |
+| All agents passive purely via env_cfg | `+<IP>_PASSIVE=all` plusarg → `set_agent_activity`; agents skip driver/sequencer construction |
+| vsif syntax + smoke launch | vManager-format session/group/test; `make regress` |
+| Two config YAMLs → two banners + two matrix entries | runtime plusargs from cfg2args; `tests/test_scripts.py::test_two_configs_two_matrix_entries` |
+| Copilot kit with real names, working commands | templated prompts; `tests/test_generate.py::test_copilot_kit_uses_real_names` |
+| README | this file + a per-env README |
 
-## Developing uvm-gen
+## Development
 
 ```bash
-pip install pytest
-cd uvm-gen && pytest            # generator unit + generated-code sanity tests
+pip install -r requirements.txt
+python3 -m pytest tests/            # 30 tests: config merge/hash/validation,
+                                    # generation, re-run policy, scripts
 ```
 
-Templates live in `uvm_gen/templates/` (`.sv.j2` Jinja2 files — no SV inside
-Python). `sim/scripts/cfg_tool.py` is copied verbatim and kept IP-agnostic;
-a test pins its param-hash implementation to the generator's.
+Layout: `uvm_gen.py` (entry) → `uvmgen/` (`config.py`, `generate.py`,
+`cli.py`, `vip.py`) → `uvmgen/templates/` (all Jinja2 sources, grouped by
+destination: `agent/`, `vip/`, `env/`, `seq_lib/`, `tests/`, `tb/`, `sim/`,
+`root/`, `copilot/`).

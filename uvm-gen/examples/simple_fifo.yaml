@@ -1,0 +1,21 @@
+# Minimal configuration: custom interfaces only, no Cadence VIPs.
+# The generated env compiles and runs its smoke test with zero edits and no
+# $CDN_VIP_ROOT requirement.
+ip_name: simple_fifo
+
+dut:
+  module: simple_fifo_top
+
+agents:
+  - name: wr
+    mode: active
+  - name: rd
+    mode: active
+
+# i3c VIP example (commented) — note the protocol-appropriate defaults the
+# generator seeds (role: controller, ibi_enable: 1) which you edit afterwards:
+# vips:
+#   - protocol: i3c
+#     name: i3c_main
+#     role: controller
+#     ibi_enable: true

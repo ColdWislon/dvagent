@@ -1,0 +1,55 @@
+---
+mode: agent
+description: "Phase 3 — grow the {{ ip }} test list toward the verification plan"
+---
+
+# Write tests ({{ ip }}, phase 3)
+
+## Precondition
+
+Phase 2 done: `make -C sim run TEST={{ ip }}_smoke_test` passes with
+`UVM_ERROR : 0` against the real RTL. See `implement-agents.prompt.md`.
+
+## Goal
+
+Extend `seq_lib/` and `tests/` toward the verification plan, and register
+every new test in the regression vsif.
+
+## Relevant files
+
+* `seq_lib/{{ ip }}_base_vseq.sv` — base class for every new virtual sequence
+  (p_sequencer gives handles to all agent sequencers; ALWAYS null-check them)
+* `seq_lib/{{ ip }}_seq_lib_pkg.sv` — add include lines for new sequences
+{% for a in agents %}
+* `agents/{{ a.name }}_agent/{{ ip }}_{{ a.name }}_base_seq.sv` — extend for directed '{{ a.name }}' stimulus
+{% endfor %}
+* `tests/{{ ip }}_base_test.sv` — base class for every new test; override
+  `configure_env()` to tweak `{{ ip }}_env_cfg` per test
+* `tests/{{ ip }}_test_pkg.sv` — add include lines for new tests
+* `sim/{{ vsif_name }}` — REGISTER each new test (group/test/count/seed
+  random, run_script calling `make run` — copy the smoke pattern)
+* `env/{{ ip }}_scoreboard.sv` — fill the `TODO(scoreboard)` compare logic as
+  checks become meaningful
+
+## Rules
+
+* Tests configure behavior exclusively through `{{ ip }}_env_cfg` (fields,
+  `params`, factory overrides) — never by editing env/agent code per test.
+* Parameter-dependent stimulus/checks read the configuration from
+  `{{ ip }}_env_cfg` typed mirrors (`prm_*`) or `params[...]` — a test must
+  behave correctly under every `cfg/*.yaml`.
+* Keep tests seed-stable: no time-dependent randomness outside UVM seeding.
+
+## Commands
+
+```bash
+make -C sim run TEST=<new_test>                          # per test while developing
+make -C sim run TEST=<new_test> CFG=cfg/<config>.yaml    # against other configs
+make -C sim regress                                      # full vsif under vManager
+```
+
+## Done when
+
+Every new test passes locally under at least the default configuration, is
+included in `tests/{{ ip }}_test_pkg.sv`, and has a `test` entry in
+`sim/{{ vsif_name }}`. Then continue with `triage-regression.prompt.md`.

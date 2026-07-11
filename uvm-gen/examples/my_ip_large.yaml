@@ -1,10 +1,8 @@
-# 'large' configuration of my_ip: deep-merges onto my_ip.yaml (this file wins).
+# 'large' configuration of my_ip.
 extends: my_ip.yaml
+
 config_name: large
 
 params:
-  DATA_WIDTH: 64
-  NUM_CHANNELS: 4
-  FIFO_DEPTH:
-    value: 16
-    style: defparam
+  DATA_W: 64
+  FIFO_DEPTH: 64

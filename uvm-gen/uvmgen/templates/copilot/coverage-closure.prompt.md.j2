@@ -1,0 +1,51 @@
+---
+mode: agent
+description: "Phase 5 — close {{ ip }} functional coverage"
+---
+
+# Coverage closure ({{ ip }}, phase 5)
+
+## Precondition
+
+Phase 4 done: the regression runs clean (`make -C sim matrix` CLEAN for the
+target configurations). See `triage-regression.prompt.md`.
+
+## Goal
+
+Analyze functional coverage holes, extend covergroups/tests to close them,
+and iterate until the coverage goals are met for EVERY configuration.
+
+## Relevant files
+
+{% for a in agents %}
+* `env/{{ ip }}_{{ a.name }}_coverage.sv` — '{{ a.name }}' covergroup (`{{ a.name }}_cg`); replace the
+  example coverpoints with the real plan, add crosses
+{% endfor %}
+* `seq_lib/`, `tests/` — new stimulus targeting specific holes
+* `cfg/*.yaml` — some bins only exist under certain parameter sets; use the
+  `params` map / `prm_*` mirrors in `{{ ip }}_env_cfg` to guard config-dependent
+  bins (`ignore_bins` what a configuration cannot hit)
+
+## Procedure
+
+1. Run the regression with coverage collection, e.g.
+   `make -C sim regress XRUN_OPTS="-coverage all -covoverwrite"` (or add the
+   site's coverage flags), then merge/inspect with IMC.
+2. Rank holes: protocol-critical first; mark unreachable-by-configuration
+   bins with `ignore_bins` + a comment naming the parameter condition.
+3. For each real hole: extend an existing sequence or add a directed one,
+   register any new test in `sim/{{ vsif_name }}`, re-run.
+4. Repeat per configuration: `make -C sim regress CFG=cfg/<config>.yaml` —
+   coverage percentages recorded in `verif_matrix.yaml` when present in logs.
+
+## Rules
+
+* A hole is closed by STIMULUS or justified by a documented exclusion — never
+  by deleting the coverpoint.
+* Coverage code must stay config-aware: never write bins that silently can't
+  hit under a shipping configuration.
+
+## Done when
+
+Coverage goals are met (or exclusions documented) for every configuration in
+`cfg/`. Then continue with `verif-closure.prompt.md`.
