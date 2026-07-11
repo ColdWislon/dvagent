@@ -76,6 +76,9 @@ params:                         # RTL parameters/defines for this configuration
 # defines:                      # extra +define+ macros (never defparam'd)
 #   EN_FEATURE_X: 1
 # param_style: define           # 'define' (default) | 'defparam'
+# dv_scaffold: true             # true (default): emit the docs/ + dv/ DV
+                                #   methodology tree (see below); false: lean
+                                #   standalone env without it
 
 agents:                         # custom (non-VIP) interfaces
   - name: ctrl
@@ -140,11 +143,36 @@ Knob values can be overridden directly in the YAML entry
 ├─ sim/                        # Makefile, tb.f, vip_<proto>.f, <ip>[_<cfg>].vsif,
 │                              # scripts/ (cfg2args, record_result, matrix_report,
 │                              # waves.tcl)
+├─ docs/                       # CLAUDE.md (per-IP context) + vplan.md skeletons  ┐ DV methodology
+├─ dv/                         # tests/negative/ (chkq kit + IP base/example +    │ scaffolding —
+│                              # HDL-path registry + chkq.f), lists/{chkq,sanity},│ omitted when
+│                              # cov/exclusion_requests.md, status/               ┘ dv_scaffold: false
 ├─ .github/                    # Copilot kit: copilot-instructions.md + prompts/
 ├─ Makefile                    # thin wrapper around sim/Makefile
 ├─ verif_matrix.yaml           # verification tracking (auto-appended)
 └─ README.md, .gitignore
 ```
+
+### DV methodology scaffolding (`dv_scaffold`, default on)
+
+By default each env also carries the collateral the GitHub Copilot DV pack
+expects, so a generated env drops straight into that workflow:
+
+* `docs/CLAUDE.md` — per-IP context skeleton (read before working on the IP);
+* `docs/vplan.md` — verification-plan table skeleton (`VP-<IP>-xxx` items that
+  tests, bins, and checks trace back to);
+* `dv/tests/negative/` — the checker-qualification (chkq) kit: the generic
+  `chkq_pkg`, an `<ip>_chkq_base_test` reparented onto `<ip>_base_test`, a
+  compiling `<ip>_example_neg_test`, the central `chkq_paths.svh` HDL-path
+  registry, and an opt-in `chkq.f` filelist (functional builds never see it —
+  add it with `EXTRA_FILELISTS=` and run with `+CHKQ_ENABLE -access +rwc`);
+* `dv/lists/{chkq,sanity}.list`, `dv/cov/exclusion_requests.md`, `dv/status/`
+  (session/verdict sidecars the local cockpit renders).
+
+Set `dv_scaffold: false` in the config YAML for a lean standalone env (core
+UVM env + sim flow + `.github` phase kit only, none of the `dv/` or `docs/`
+tree). The switch is honored by the never-overwrite policy like everything
+else.
 
 Everything is prefixed `<ip_name>_` and the env/agent/seq code contains **no
 testbench references and no hierarchical config_db lookups** (enforced by the

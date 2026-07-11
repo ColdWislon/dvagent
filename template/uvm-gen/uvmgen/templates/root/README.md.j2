@@ -36,6 +36,10 @@ param hash) and appends a record to `verif_matrix.yaml`.
 | `tests/` | {{ ip }}_base_test, {{ ip }}_smoke_test, test package |
 | `tb/` | {{ ip }}_tb_top + DUT stub |
 | `sim/` | Makefile, tb.f, vip_*.f, {{ vsif_name }}, scripts/ |
+{% if dv_scaffold %}
+| `docs/` | `CLAUDE.md` (per-IP context), `vplan.md` (verification plan) |
+| `dv/` | methodology tree: `tests/negative/` (chkq kit), `lists/`, `cov/exclusion_requests.md`, `status/` |
+{% endif %}
 | `.github/` | Copilot agentic verification kit (instructions + phase prompts) |
 
 ## Ground rules

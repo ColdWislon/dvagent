@@ -19,6 +19,10 @@ definition of done.
 ├─ tests/                # {{ ip }}_base_test, {{ ip }}_smoke_test, ...
 ├─ tb/                   # {{ ip }}_tb_top (+ DUT stub)
 ├─ sim/                  # Makefile, tb.f, vip_*.f, {{ vsif_name }}, scripts/
+{% if dv_scaffold %}
+├─ docs/                 # CLAUDE.md (per-IP context — read before working), vplan.md
+├─ dv/                   # methodology tree: tests/negative/ (chkq kit), lists/, cov/, status/
+{% endif %}
 └─ verif_matrix.yaml     # per-run verification tracking (auto-appended)
 ```
 
@@ -69,6 +73,17 @@ make clean
 * New tests: add the class under `tests/`, add an include line to
   `tests/{{ ip }}_test_pkg.sv`, and register a `test` entry in
   `sim/{{ vsif_name }}` (per-config vsif, session `{{ ip }}_<config_name>`).
+{% if dv_scaffold %}
+* Checker-qualification (chkq) tests are opt-in and out of the functional
+  build: `make run TEST={{ ip }}_example_neg_test
+  EXTRA_FILELISTS=${{ IP }}_VERIF_HOME/dv/tests/negative/chkq.f
+  XRUN_OPTS='+CHKQ_ENABLE -access +rwc'`. Extend `{{ ip }}_chkq_base_test`,
+  keep HDL paths in `dv/tests/negative/chkq_paths.svh`, register each in
+  `dv/lists/chkq.list`. Functional tests must NEVER set `+CHKQ_ENABLE`.
+* Read `docs/CLAUDE.md` before working on {{ ip }}; trace every test/bin/check
+  to a `VP-{{ IP }}-xxx` row in `docs/vplan.md`; append coverage waivers to
+  `dv/cov/exclusion_requests.md` (a human applies them).
+{% endif %}
 
 ## Definition of done, per phase
 

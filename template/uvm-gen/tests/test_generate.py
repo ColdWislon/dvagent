@@ -95,11 +95,69 @@ def test_generated_tree_layout(work):
         ".github/prompts/triage-regression.prompt.md",
         ".github/prompts/coverage-closure.prompt.md",
         ".github/prompts/verif-closure.prompt.md",
+        # DV methodology scaffolding (dv_scaffold default on)
+        "docs/CLAUDE.md",
+        "docs/vplan.md",
+        "dv/tests/negative/chkq_pkg.sv",
+        "dv/tests/negative/chkq_paths.svh",
+        "dv/tests/negative/my_ip_chkq_base_test.sv",
+        "dv/tests/negative/my_ip_example_neg_test.sv",
+        "dv/tests/negative/my_ip_chkq_pkg.sv",
+        "dv/tests/negative/chkq.f",
+        "dv/lists/chkq.list",
+        "dv/lists/sanity.list",
+        "dv/cov/exclusion_requests.md",
+        "dv/status/README.md",
     ]
     for rel in expected:
         assert (env / rel).is_file(), f"missing: {rel}"
-    assert len(report.created) == 58
+    assert len(report.created) == 70
     assert not report.skipped and not report.stale
+
+
+def test_dv_scaffold_contents(work):
+    cfg_dir, out = work
+    gen(cfg_dir / "my_ip.yaml", out)
+    env = out / "my_ip_verif"
+    neg = env / "dv/tests/negative"
+    # chkq base is reparented onto the IP base test (the pack's stated contract)
+    base = (neg / "my_ip_chkq_base_test.sv").read_text()
+    assert "class my_ip_chkq_base_test extends my_ip_base_test" in base
+    assert "CHKQ_ENABLE" in base and "check_phase" in base
+    # example extends the reparented base and compiles against real handles
+    ex = (neg / "my_ip_example_neg_test.sv").read_text()
+    assert "extends my_ip_chkq_base_test" in ex
+    assert "m_env.m_vsequencer" in ex
+    # opt-in filelist wires both packages, anchored on the env home var
+    chkqf = (neg / "chkq.f").read_text()
+    assert "$MY_IP_VERIF_HOME/dv/tests/negative/chkq_pkg.sv" in chkqf
+    assert "my_ip_chkq_pkg.sv" in chkqf
+    # vplan + context + lists + exclusions in the shapes the pack scans for
+    assert "VP-MY_IP-001" in (env / "docs/vplan.md").read_text()
+    assert "my_ip" in (env / "docs/CLAUDE.md").read_text()
+    assert "my_ip_example_neg_test" in (env / "dv/lists/chkq.list").read_text()
+    assert "my_ip_smoke_test" in (env / "dv/lists/sanity.list").read_text()
+    excl = (env / "dv/cov/exclusion_requests.md").read_text()
+    assert "Justification" in excl and "Status" in excl
+    # scaffold is NOT reusable-component code, so it is exempt from the
+    # tb_top/config_db lint — but the chkq base test legitimately uses the env
+    assert (env / "dv/status/README.md").is_file()
+
+
+def test_dv_scaffold_can_be_disabled(work):
+    cfg_dir, out = work
+    lean = cfg_dir / "lean.yaml"
+    lean.write_text("ip_name: my_ip\ndut:\n  module: my_ip_top\n"
+                    "dv_scaffold: false\nagents:\n  - name: ctrl\n")
+    _, report = gen(lean, out)
+    env = out / "my_ip_verif"
+    assert not (env / "dv").exists()
+    assert not (env / "docs").exists()
+    # none of the scaffold files were emitted
+    assert not any(rel.startswith(("dv/", "docs/")) for rel in report.created)
+    # core env still fully generated
+    assert (env / "env/my_ip_env.sv").is_file()
+    assert (env / "sim/Makefile").is_file()
 
 
 def test_no_unrendered_jinja_and_sane_sv(work):

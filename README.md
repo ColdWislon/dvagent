@@ -158,15 +158,18 @@ quick-review MRs if you prefer zero agent writes there.
 ## Using the pack outside this template
 
 Generating an environment somewhere that is NOT a pack-rooted workspace?
-uvm-gen does NOT auto-stage the wider pack today — each generated env only
-gets its own narrow `.github/` (instructions + the six phase prompts,
-self-contained by design; see `template/uvm-gen/README.md`). To get the full
-agent set, chkq kit, cockpit, and vplan-drafting tooling working on a
-hand-written or externally-generated DV repo, copy `.github/`,
-`template/cockpit.ini`, `template/chkq-kit/`, `template/docs/methodology/`
-and `template/USERGUIDE.md` to its root (flattening `template/` back out —
-`.github/` needs no move, it was already root-relative) and adapt the layout
-references.
+Each generated env is self-contained for its own flow: its narrow `.github/`
+(instructions + the six phase prompts) plus, by default, the per-IP
+methodology tree — `docs/CLAUDE.md` + `docs/vplan.md`, and the `dv/` tree
+with the chkq kit staged into `dv/tests/negative/`, regression lists,
+exclusion file, and status sidecars (`dv_scaffold: false` opts out). What it
+does NOT carry is the CROSS-IP agent pack — the `dv-*` agents, the 31 skills,
+the cockpit, and the vplan-drafting kit live once at the workspace root. To
+get those working on a hand-written or externally-generated DV repo, copy
+`.github/`, `template/cockpit.ini`, `template/chkq-kit/`,
+`template/docs/methodology/` and `template/USERGUIDE.md` to its root
+(flattening `template/` back out — `.github/` needs no move, it was already
+root-relative) and adapt the layout references.
 
 ## Prerequisites (in order of importance)
 

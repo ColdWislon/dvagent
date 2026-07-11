@@ -138,6 +138,17 @@ def validate(cfg):
         raise ConfigError(f"param_style must be 'define' or 'defparam', got: {style!r}")
     out["param_style"] = style
 
+    # DV methodology scaffolding (docs/CLAUDE.md + vplan, the dv/ tree with the
+    # chkq negative-test kit, regression lists, exclusion file, status sidecars)
+    # — on by default so a generated env drops straight into the Copilot DV
+    # pack; set 'dv_scaffold: false' for a lean standalone env.
+    scaffold = cfg.get("dv_scaffold", True)
+    if isinstance(scaffold, str):
+        scaffold = {"true": True, "false": False}.get(scaffold.strip().lower(), scaffold)
+    if not isinstance(scaffold, bool):
+        raise ConfigError(f"dv_scaffold must be a boolean, got: {cfg.get('dv_scaffold')!r}")
+    out["dv_scaffold"] = scaffold
+
     out["params"] = _scalar_map(cfg.get("params"), "params")
     out["defines"] = _scalar_map(cfg.get("defines"), "defines")
 

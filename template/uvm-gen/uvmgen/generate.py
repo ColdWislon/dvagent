@@ -142,6 +142,7 @@ def build_context(cfg, chain):
         "cfg_rel_from_root": f"cfg/{cfg_relname}",
         "vsif_name": vsif_name,
         "copilot_prompts": COPILOT_PROMPTS,
+        "dv_scaffold": cfg["dv_scaffold"],
     }
 
 
@@ -184,6 +185,25 @@ def manifest(ctx):
             f"copilot/{prompt}.prompt.md.j2",
             {},
         ))
+
+    # DV methodology collateral (the Copilot DV pack expects this per-env tree;
+    # suppressed by 'dv_scaffold: false' for a lean standalone env).
+    if ctx["dv_scaffold"]:
+        neg = "dv/tests/negative"
+        files += [
+            ("docs/CLAUDE.md", "docs/CLAUDE.md.j2", {}),
+            ("docs/vplan.md", "docs/vplan.md.j2", {}),
+            (f"{neg}/chkq_pkg.sv", "dv/chkq_pkg.sv.j2", {}),
+            (f"{neg}/chkq_paths.svh", "dv/chkq_paths.svh.j2", {}),
+            (f"{neg}/{ip}_chkq_base_test.sv", "dv/chkq_base_test.sv.j2", {}),
+            (f"{neg}/{ip}_example_neg_test.sv", "dv/example_neg_test.sv.j2", {}),
+            (f"{neg}/{ip}_chkq_pkg.sv", "dv/chkq_ip_pkg.sv.j2", {}),
+            (f"{neg}/chkq.f", "dv/chkq.f.j2", {}),
+            ("dv/lists/chkq.list", "dv/chkq.list.j2", {}),
+            ("dv/lists/sanity.list", "dv/sanity.list.j2", {}),
+            ("dv/cov/exclusion_requests.md", "dv/exclusion_requests.md.j2", {}),
+            ("dv/status/README.md", "dv/status_readme.md.j2", {}),
+        ]
 
     agent_parts = [
         ("if", "if"),

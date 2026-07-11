@@ -96,6 +96,15 @@ def test_validate_rejects_bad_input():
                   "agents": [{"name": "a"}, {"name": "a"}]})
     with pytest.raises(ConfigError, match="param_style"):
         validate({"ip_name": "x", "param_style": "plusarg"})
+    with pytest.raises(ConfigError, match="dv_scaffold"):
+        validate({"ip_name": "x", "dv_scaffold": "yes please"})
+
+
+def test_dv_scaffold_defaults_on_and_accepts_bool():
+    assert validate({"ip_name": "x"})["dv_scaffold"] is True
+    assert validate({"ip_name": "x", "dv_scaffold": False})["dv_scaffold"] is False
+    # YAML-ish string booleans are tolerated
+    assert validate({"ip_name": "x", "dv_scaffold": "false"})["dv_scaffold"] is False
 
 
 def test_i3c_role_aliases_and_defaults():
