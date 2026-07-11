@@ -8,4 +8,4 @@ cockpit.html
 index.html
 
 # Generated environments created in this workspace manage their own
-# artifacts via <ip>_verif/.gitignore (sim logs, xcelium.d_*, waves, ...).
+# artifacts via <ip>_verif/.gitignore (sim results, xcelium.d, waves, ...).

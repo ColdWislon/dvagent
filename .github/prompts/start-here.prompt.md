@@ -13,14 +13,15 @@ Determine how this repo compiles/simulates, in this order:
 1. A `dv` wrapper on PATH (`command -v dv`) → the golden commands in
    copilot-instructions.md apply; consult the `dv-wrapper` skill for
    specifics (UNKNOWNs there are resolved later via `/learn-dv-wrapper`).
-2. A uvm-gen environment (`.github/instructions/uvm-gen-env.instructions.md`
-   present, or a `sim/Makefile` with the uvm-gen banner) → use the make
-   mapping from that instructions file.
+2. A uvm-gen environment (an `<ip>_verif/` tree whose `sim/Makefile` carries
+   the uvm-gen banner; each env also ships its own
+   `.github/copilot-instructions.md`) → use the make mapping from the
+   agent contract / that env's instructions.
 3. Neither → say so and ask the engineer how the team builds/runs.
 
 ## 2. Orient them (read-only)
 Read what exists and summarize in under a page, flagging anything missing:
-- `GETTING_STARTED.md` (uvm-gen envs) and/or `USERGUIDE.md` / `.github/USERGUIDE.md`
+- `README.md` at the env root (uvm-gen envs) and/or `USERGUIDE.md` / `.github/USERGUIDE.md`
 - the per-IP context `docs/CLAUDE.md` (or `<ip>/docs/CLAUDE.md`) — if it is
   a template full of brackets, tell them filling it is a first-week task
 - `docs/vplan.md` — does a real vplan exist, or only the skeleton?
