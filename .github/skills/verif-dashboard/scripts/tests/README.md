@@ -3,5 +3,6 @@ Fixture repo for dashboard.py self-test. Run from this directory:
   python3 ../dashboard.py --all --root fake_repo
 uart_ip: all sources populated (review/lint/triage/session/vplan/placeholder/
 exclusion) — expect pending=4, placeholders=1, clusters=2, milestone M1,
-orphan VP-103. spi_ip: empty — expect "no data" states. Not real IPs; exclude
+orphans VP-UART-103 and VP-UART-104 (in plan, no code ref). spi_ip: empty —
+expect "no data" states. Not real IPs; exclude
 from CI scans. Delete generated *.html before committing.

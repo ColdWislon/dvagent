@@ -64,7 +64,7 @@ exists, make its ports real.
    (no edits needed there) — the compile log's "generated DUT stub" note
    disappearing is the signal that real RTL was actually used, not a name
    collision with a from-nowhere module.
-5. **Prove it**: `make -C sim compile`.
+5. **Prove it**: `make compile` (from `<ip>_verif/sim/`).
 
 ## Hard rules (never violate)
 

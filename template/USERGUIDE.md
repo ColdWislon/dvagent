@@ -5,12 +5,13 @@ read; the rest you learn by doing.
 
 ## What this is, in 30 seconds
 
-Six specialized Copilot agents that work inside our UVM environments —
+Eight specialized Copilot agents that work inside our UVM environments —
 uvm-gen-generated testbenches (`<ip>_verif/`) driven through their
-`sim/Makefile`: they write tests, stimulus, and checkers, close coverage,
-and triage failures — always closing the loop with real compile/sim
-verdicts, never by claiming success. You drive them from VS Code chat; you
-review and merge everything. The no-shortcut rules (RTL read-only, no
+`sim/Makefile`: they architect environments, wire DUTs, write tests,
+stimulus, and checkers, close coverage, and triage failures — always
+closing the loop with real compile/sim verdicts, never by claiming
+success. You drive them from VS Code chat; you review and merge
+everything. The no-shortcut rules (RTL read-only, no
 checker weakening, no exclusions) are enforced by the CI gate on every
 MR — agent-authored or not.
 
@@ -51,6 +52,7 @@ in this guide otherwise stays the same.
 | You want to... | Use | Entry point |
 |---|---|---|
 | First day on the repo / guided onboarding | (read-only guide) | `/start-here` |
+| Architect / generate a new UVM env from a spec | dv-env-architect | `/generate-environment <ip>` |
 | Wire a generated env's tb_top to real RTL | dv-dut-integrator | `/connect-dut <ip>` |
 | Close a vplan item (test + covergroup) | dv-test-writer | `/close-vplan-item VP-xxx <ip>` |
 | Build reusable sequences / constraints | dv-stim-writer | `/build-stimulus <scenario> <ip>` |

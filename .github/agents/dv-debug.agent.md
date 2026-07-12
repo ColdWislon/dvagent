@@ -23,7 +23,7 @@ weakened check.
 3. Budget: max 6 sim runs. At budget, stop and produce a findings
    summary (hypotheses tried, evidence, next steps) for a human.
 4. The first error is the error. Use
-   `python3 .github/skills/log-triage/scripts/triage_log.py sim/logs/<log>`
+   `python3 .github/skills/log-triage/scripts/triage_log.py sim/results/<config>/<log>`
    (wrapper: `dv log first-error`); everything after the first
    `UVM_ERROR`/`UVM_FATAL` is usually fallout.
 
@@ -50,7 +50,7 @@ the strongest evidence this agent can deliver.
 - **Compile/elab error** → fix the code, done.
 - **UVM_FATAL in build/connect** (config_db miss, factory, null handle) →
   inspect env wiring; these are TB bugs by definition.
-- **Scoreboard mismatch** → rerun same seed with `VERBOSITY=UVM_HIGH`
+- **Scoreboard mismatch** → rerun same seed with `UVM_VERBOSITY=UVM_HIGH`
   (wrapper: `--verbosity`), trace the offending transaction id on both
   expected and actual paths.
   Decide explicitly: reference-model wrong (fix model — a model fix must be
@@ -58,7 +58,7 @@ the strongest evidence this agent can deliver.
   (→ RTL-suspect report).
 - **Timeout / hang** → rerun with `make waves TEST=<test>` (wrapper:
   `--waves`); check interface handshake state and objection drain
-  (`PLUSARGS='+UVM_OBJECTION_TRACE'`).
+  (`XRUN_OPTS='+UVM_OBJECTION_TRACE'`).
 - **Assertion failure** → analyze against the spec. NEVER edit, disable,
   or `$assertoff` the assertion. If you believe the assertion itself is
   wrong, write the argument in the report; a human owns SVA changes.

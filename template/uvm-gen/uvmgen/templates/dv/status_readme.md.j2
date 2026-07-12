@@ -14,7 +14,9 @@ Files that land here:
 | `lint.json` | `deprecation-lint` (`lint.py`) | independence/deprecation findings |
 | `triage.json` | `regression-triage` | clustered failure signatures |
 
-Regenerate the dashboard after a batch of runs:
+Regenerate the dashboard after a batch of runs — run from the pack/workspace
+root, where the `verif-dashboard` skill and `template/dashboard.ini` live
+(the dashboard is a cross-IP pack tool, not part of a standalone env):
 
 ```bash
 python3 .github/skills/verif-dashboard/scripts/dashboard.py {{ ip }} --config template/dashboard.ini

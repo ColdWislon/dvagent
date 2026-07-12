@@ -35,6 +35,7 @@ uvm_gen.py <config.yaml> [-o OUTPUT_DIR] [--force] [--dry-run] [--version]
 | `-o OUTPUT_DIR` | where `<ip_name>_verif/` is created (default `.`) |
 | `--force` | overwrite **everything** (destroys local edits — see re-run policy) |
 | `--dry-run` | show what would be created without writing |
+| `--version` | print the uvm-gen version and exit |
 
 ### Re-run policy (never overwrite)
 
@@ -317,7 +318,7 @@ done-criterion as its precondition — so an agent can run the whole flow:
 
 ```bash
 pip install -r requirements.txt
-python3 -m pytest tests/            # 30 tests: config merge/hash/validation,
+python3 -m pytest tests/            # 33 tests: config merge/hash/validation,
                                     # generation, re-run policy, scripts
 ```
 

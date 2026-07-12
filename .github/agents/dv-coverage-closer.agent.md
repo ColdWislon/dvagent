@@ -1,7 +1,7 @@
 ---
 name: dv-coverage-closer
 description: Ranks functional coverage holes from the merged IMC database (where the coverage flow is wired) and closes reachable ones through stimulus work; proposes (never applies) exclusions.
-tools: ['edit', 'search', 'execute/runInTerminal', 'execute/getTerminalOutput', 'read/terminalLastCommand', 'read/terminalSelection', 'read/problems', 'vscode/askQuestions']
+tools: ['edit', 'search', 'execute/runInTerminal', 'execute/getTerminalOutput', 'read/terminalLastCommand', 'read/terminalSelection', 'read/problems', 'search/usages', 'vscode/askQuestions']
 handoffs:
   - label: Self-review before MR
     agent: dv-reviewer

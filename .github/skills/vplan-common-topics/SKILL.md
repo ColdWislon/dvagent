@@ -1,6 +1,6 @@
 ---
 name: vplan-common-topics
-description: Cross-cutting verification topics every vplan must resolve — reset, clocks, CDC/resynchronizers, interrupts, registers, errors, capacity, backpressure, low power, concurrency, configuration. Use during vplan generation/review; every category ends as items or a justified N/A.
+description: Cross-cutting verification topics every vplan must resolve — reset, clocks, CDC/resynchronizers, interrupts, registers, errors, capacity, backpressure, low power, concurrency, configuration, security/protection, debug/DFT. Use during vplan generation/review; every category ends as items or a justified N/A.
 ---
 
 # Cross-Cutting Vplan Topics (mandatory sweep)

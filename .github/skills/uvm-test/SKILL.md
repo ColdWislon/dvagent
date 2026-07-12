@@ -28,7 +28,7 @@ Gather these from the conversation, or ask. Do not invent them.
 1. **Feature / scenario name** -> drives the class name `<feat>_test`.
 2. **Base test** to extend (default: the project base test, e.g. `<proj>_base_test`).
 3. **Virtual sequence** to launch (an existing `<feat>_vseq`, or flag that it
-   must be created first -- that is the `uvm-vseq` skill, not this one).
+   must be created first -- that is the `uvm-vsequence` skill, not this one).
 4. **Knobs**: the `config_db` values or factory overrides this test needs
    (error injection, mode selects, agent active/passive, alternate sequence).
 5. **vPlan feature ID** for the traceability tag.

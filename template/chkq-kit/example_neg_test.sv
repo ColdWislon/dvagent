@@ -3,7 +3,9 @@
 // Pattern: normal traffic + one RTL-side corruption via the injector +
 // a registered expectation that the scoreboard catches exactly it.
 // Lives under dv/tests/negative/, runs with (no coverage):
-//   make run TEST=axi_scbd_data_neg_test PLUSARGS='+CHKQ_ENABLE' XRUN_OPTS='-access +rwc'
+//   make run TEST=axi_scbd_data_neg_test \
+//     EXTRA_FILELISTS=$AXI_VERIF_HOME/dv/tests/negative/chkq.f \
+//     XRUN_OPTS='+CHKQ_ENABLE -access +rwc'
 //   (wrapper: dv sim <ip> axi_scbd_data_neg_test --plusargs +CHKQ_ENABLE)
 // ---------------------------------------------------------------------------
 class axi_scbd_data_neg_test extends chkq_base_test;   // or your chkq-reparented base
@@ -23,7 +25,7 @@ class axi_scbd_data_neg_test extends chkq_base_test;   // or your chkq-reparente
     // 2. Normal legal traffic — the checker must be exercised, not idle.
     vseq = axi_smoke_vseq::type_id::create("vseq");
     fork
-      vseq.start(env.vsequencer);
+      vseq.start(m_env.m_vsequencer);
     join_none
 
     // 3. Corrupt the DUT read path mid-traffic. Path + value + window are

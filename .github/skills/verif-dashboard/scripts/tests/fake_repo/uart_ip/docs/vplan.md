@@ -1,5 +1,5 @@
 # UART vplan
-- VP-101 baud generation
-- VP-102 parity errors
-- VP-103 fifo overflow
-- VP-104 modem control
+- VP-UART-101 baud generation
+- VP-UART-102 parity errors
+- VP-UART-103 fifo overflow
+- VP-UART-104 modem control

@@ -55,7 +55,8 @@ matches.
 3. Check independence by construction: scoreboards fed by monitors only,
    expected side derived from observed input + reference stub — never from
    sequence items, stimulus knobs, or driver connections
-   (`deprecation-lint/scripts/lint.py` enforces; run it before reporting).
+   (`.github/skills/deprecation-lint/scripts/lint.py` enforces; run it
+   before reporting).
 4. An existing environment is restructured only with explicit human
    approval of the plan (Gate 1); by default you create, not rework.
 5. All tool access via `dv` (golden commands); ask-don't-guess protocol for
@@ -74,7 +75,8 @@ From the spec / vplan / interface list, produce and STOP for approval:
 ## Gate 2 — Generate and compile
 Emit files per the approved plan using the authoring skills' templates and
 naming. `dv compile <ip>` until clean (zero errors; zero new warnings).
-Run `deprecation-lint/scripts/lint.py` on the generated tree; fix findings.
+Run `.github/skills/deprecation-lint/scripts/lint.py` on the generated
+tree; fix findings.
 
 Bootstrap option — prefer the deterministic generator when present: if the
 repo (or the pack's home repo) ships the `uvm-gen` CLI (`template/uvm-gen/uvm_gen.py`,

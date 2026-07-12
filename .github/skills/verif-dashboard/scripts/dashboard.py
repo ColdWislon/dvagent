@@ -54,7 +54,7 @@ DEFAULTS = {
         "scan_dirs":       "dv",                    # comma-separated, relative to ip
         "scan_exts":       ".sv,.svh",
         "placeholder_tag": "PLACEHOLDER-CHECK",
-        "vplan_tag":       r"VP-\d+",
+        "vplan_tag":       r"VP-[\w-]+",             # VP-<IP>-nnn (and legacy VP-nnn)
         "ip_glob":         "*/dv",                  # --all discovery: dirs whose parent is an IP
     },
     "display": {

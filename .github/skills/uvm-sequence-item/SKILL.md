@@ -38,5 +38,5 @@ convenience printers. No components, no logic, no interface access.
 - [ ] `convert2string` prints all fields; `copy`/`compare` behave correctly.
 - [ ] No interface / timing / logic beyond data + constraints + helpers.
 
-Naming, phasing and deprecation rules are enforced by the `naming-conventions`
+Naming and deprecation rules are enforced by the `naming-conventions`
 and `deprecation-lint` skills; `verif-env-review` checks this against them.

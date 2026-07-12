@@ -30,7 +30,7 @@ stack. Each skill is a self-contained folder that a skills-compatible agent
 ### Visibility
 | Skill | Role |
 |---|---|
-| `verif-dashboard` | local static-HTML dashboard per IP (pending human, scorecard, vplan, clusters, sessions); `scripts/dashboard.py` + `dashboard.ini` tool abstraction |
+| `verif-dashboard` | local static-HTML dashboard per IP (pending human, scorecard, vplan, clusters, sessions); `scripts/dashboard.py` + `template/dashboard.ini` tool abstraction |
 
 ### Review / enforcement — sign off an environment
 | Skill | Role |
@@ -42,6 +42,27 @@ stack. Each skill is a self-contained folder that a skills-compatible agent
 | `regression-triage` | cluster a red regression by signature, rank, dispatch plan (consumes `log-triage`) |
 | `debug-strategy` | hypothesis-driven debug of one failing sim; per-failure-mode playbooks (mismatch/hang/X-prop/SVA/randomize/RAL) |
 | `verif-env-review` | the single review entry point: reviews the **full verification environment** (9 axes: testbench code + TB top, build, regression, coverage, SVA, vPlan, CI, reproducibility); folds the testbench-code review + the three law skills + `lint.py`; scorecard + milestone verdict |
+
+### Standards & reuse (the law layer)
+| Skill | Role |
+|---|---|
+| `uvm-coding-standard` | authoritative team UVM coding standard; the three law skills above (`naming-conventions`/`phasing-check`/`deprecation-lint`) are its detail layer |
+| `vertical-reuse` | the SoC/subsystem reuse contract every generated env file must satisfy (one `env_cfg`, no tb-hierarchy references) |
+
+### Protocol knowledge
+| Skill | Role |
+|---|---|
+| `amba-apb` / `amba-ahb` / `amba-axi` | protocol facts (signals, phases, ordering, error rules) for APB/AHB/AXI agents and checks |
+
+### Flow, planning & closure
+| Skill | Role |
+|---|---|
+| `xcelium-flow` | Cadence Xcelium / `xrun` build-flow reference |
+| `dv-wrapper` | the live flow reference — uvm-gen make flow (confirmed) plus optional `dv` wrapper facts; ask-don't-guess, the one agent-writable skill |
+| `dut-integration` | wire a generated `tb_top` to real DUT RTL (port mapping, tie-offs) |
+| `vplan-common-topics` | cross-cutting vplan topics (mandatory completeness sweep: reset, CDC, power, security, …) |
+| `coverage-closure` | coverage-hole ranking and closure policy (A/B/C/D classes) |
+| `debug-playbook` | per-failure-mode debug recipes (mismatch/hang/X-prop/SVA/RAL) |
 
 ## Dependency graph
 
@@ -100,10 +121,11 @@ through the environment's `sim/Makefile` (`make compile`, `make run
 TEST=... SEED=...`) or the team `dv` wrapper where one exists — never raw
 `xrun`/`imc`/vManager; vsif files live under `sim/`, one per configuration.
 
-## Integration with the copilot-dv-agents pack
+## Integration with the dv-* agent pack
 
-This skill pack is aligned with (and subordinate to, where they overlap) the
-team's `copilot-dv-agents` repo:
+This skill pack ships alongside the `.github/` DV agent pack in this repo
+(the 8 `dv-*` agents + prompts); where they overlap it is subordinate to the
+agent contract:
 
 - **Law of the land**: `.github/copilot-instructions.md` (golden-verb table
   — uvm-gen make flow, optional dv wrapper —,
@@ -111,13 +133,15 @@ team's `copilot-dv-agents` repo:
   team `uvm-coding-standard` skill override anything here on conflict. The
   three law skills in this pack (`naming-conventions`, `phasing-check`,
   `deprecation-lint`) are the DETAIL layer under `uvm-coding-standard`.
-- **Role split with the six agents**: the agents deliberately do NOT create or
-  restructure environments, agents, scoreboards, or RAL models (dv-test-writer
-  boundary; dv-checker-writer is additive-only). The 16 authoring skills here
-  cover exactly that missing role -- the ENVIRONMENT ARCHITECT: use them in
-  plain chat / by the human architect, or as the basis for a future
-  `dv-env-architect` agent. They are not for dv-test-writer sessions.
-- **Skill complements** (no duplication): `debug-strategy/references/playbooks`
+- **Role split with the eight agents**: the day-to-day agents deliberately do
+  NOT create or restructure environments, agents, scoreboards, or RAL models
+  (dv-test-writer boundary; dv-checker-writer is additive-only). The 16
+  authoring skills here cover exactly that role -- the ENVIRONMENT ARCHITECT:
+  they are the templates and rules the `dv-env-architect` agent runs on (it
+  bootstraps from uvm-gen and customizes via these skills), and are equally
+  usable in plain chat by a human architect. They are not for dv-test-writer
+  sessions.
+- **Skill complements** (no duplication): `debug-strategy/references/playbooks.md`
   extends the team `debug-playbook` (X-prop, randomize, RAL, SVA-vacuity
   recipes); `uvm-coverage` (authoring) complements `coverage-closure`
   (closure policy); `verif-env-review` (environment audit) complements the
