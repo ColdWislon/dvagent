@@ -116,6 +116,18 @@ def test_i3c_role_aliases_and_defaults():
     assert cfg["vips"][0]["role"] == "controller"   # sensible default
 
 
+def test_lpdp_role_aliases_defaults_and_knobs():
+    cfg = validate({"ip_name": "x",
+                    "vips": [{"protocol": "lpdp", "name": "link", "role": "master"}]})
+    assert cfg["vips"][0]["role"] == "source"       # alias normalized
+    cfg = validate({"ip_name": "x",
+                    "vips": [{"protocol": "lpdp", "name": "link"}]})
+    assert cfg["vips"][0]["role"] == "source"       # sensible default
+    cfg = validate({"ip_name": "x",
+                    "vips": [{"protocol": "lpdp", "name": "link", "num_lanes": 2}]})
+    assert cfg["vips"][0]["num_lanes"] == 2         # knob override captured
+
+
 def test_bools_normalized_to_int():
     cfg = validate({"ip_name": "x", "params": {"EN": True},
                     "defines": {"OFF": False}})

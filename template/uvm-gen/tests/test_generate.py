@@ -115,6 +115,33 @@ def test_generated_tree_layout(work):
     assert not report.skipped and not report.stale
 
 
+def test_lpdp_vip_generates_directory(work):
+    cfg_dir, out = work
+    _, report = gen(cfg_dir / "lpdp_ip.yaml", out)
+    env = out / "lpdp_ip_verif"
+    vdir = env / "vip/lpdp_link_vip"
+    for rel in (
+        "lpdp_ip_lpdp_link_vip_cfg.sv",
+        "lpdp_ip_lpdp_link_vip_agent.sv",
+        "lpdp_ip_lpdp_link_vip_pkg.sv",
+    ):
+        assert (vdir / rel).is_file(), f"missing: {rel}"
+    # per-protocol Cadence VIP compile filelist
+    assert (env / "sim/vip_lpdp.f").is_file()
+    # protocol-appropriate knob seeded, LPDP title + illustrative pkg threaded through
+    cfg_sv = (vdir / "lpdp_ip_lpdp_link_vip_cfg.sv").read_text()
+    assert "int unsigned num_lanes = 4;" in cfg_sv
+    assert "Cadence LPDP VIP" in cfg_sv
+    assert 'role = "source";' in cfg_sv
+    assert "denaliCdn_lpdpUvmPkg" in (env / "sim/vip_lpdp.f").read_text()
+    # a VIP wrapper is reusable-component code: no unrendered jinja, compiles as a package
+    for sv in vdir.rglob("*.sv"):
+        text = sv.read_text()
+        assert "{{" not in text and "{%" not in text, f"unrendered jinja in {sv}"
+    pkg = (vdir / "lpdp_ip_lpdp_link_vip_pkg.sv").read_text()
+    assert "package lpdp_ip_lpdp_link_vip_pkg;" in pkg and "endpackage" in pkg
+
+
 def test_dv_scaffold_contents(work):
     cfg_dir, out = work
     gen(cfg_dir / "my_ip.yaml", out)

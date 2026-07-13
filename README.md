@@ -57,7 +57,7 @@ template machinery or a generated instance" view at a glance.
 | Where | What |
 |---|---|
 | `.github/` | the Copilot DV agent pack: 8 `dv-*` agents, 14 prompts (incl. `/start-here` onboarding), 35 skills, agent contract (`copilot-instructions.md` with the golden-verb → make-flow table), high-trust lockdown — **stays at repo root**, see above |
-| `template/uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 33-test suite). Also usable standalone — every generated env carries its own `.github/` Copilot kit |
+| `template/uvm-gen/` | the environment generator CLI (Python + Jinja2; own README, examples, 35-test suite). Also usable standalone — every generated env carries its own `.github/` Copilot kit |
 | `template/chkq-kit/` | checker-qualification SV kit (negative tests: expectation catcher, guarded injector, base test) — generic reference source; uvm-gen already stages a per-IP copy into each env's `dv/tests/negative/` when `dv_scaffold` is on (see note below) |
 | `template/external-vplan-kit/` | out-of-VS-Code vplan drafting for table/diagram-heavy PDF specs |
 | `template/docs/methodology/` | the Definition of Done the reviewer audits against |

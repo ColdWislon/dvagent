@@ -27,7 +27,7 @@ agents:                            # custom (non-VIP) interfaces
   - name: stat
     mode: passive                  # monitor/coverage only, no driver/sequencer
 
-vips:                              # Cadence VIP instances (apb | ahb | i3c)
+vips:                              # Cadence VIP instances (apb | ahb | i3c | lpdp)
   - protocol: apb
     name: apb_cfg
     role: master                   # protocol-appropriate roles; 'monitor' = passive

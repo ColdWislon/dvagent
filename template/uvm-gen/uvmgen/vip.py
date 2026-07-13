@@ -56,4 +56,24 @@ PROTOCOLS = {
         "example_agent": "denaliCdn_i3cUvmUserAgent",
         "example_cfg": "denaliCdn_i3cUvmUserConfig",
     },
+    "lpdp": {
+        "title": "LPDP",
+        # point-to-point display link: the VIP drives (source), receives
+        # (sink), or only observes (monitor => passive wrapper)
+        "roles": ["source", "sink", "monitor"],
+        "default_role": "source",
+        # accept the generic bus vocabulary and normalize to link endpoints
+        "role_aliases": {"master": "source", "slave": "sink"},
+        "knobs": [
+            {"name": "num_lanes", "sv_type": "int unsigned", "default": 4,
+             "comment": "number of main-link lanes (1/2/4)"},
+            {"name": "link_rate_mbps", "sv_type": "int unsigned", "default": 8100,
+             "comment": "per-lane main-link rate in Mbps (sensible default: HBR3 8.1G)"},
+            {"name": "mst_enable", "sv_type": "bit", "default": 0,
+             "comment": "Multi-Stream Transport support"},
+        ],
+        "example_pkg": "denaliCdn_lpdpUvmPkg",
+        "example_agent": "denaliCdn_lpdpUvmUserAgent",
+        "example_cfg": "denaliCdn_lpdpUvmUserConfig",
+    },
 }

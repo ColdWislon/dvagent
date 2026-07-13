@@ -88,7 +88,7 @@ agents:                         # custom (non-VIP) interfaces
     mode: passive
 
 vips:                           # Cadence VIP instances
-  - protocol: apb               # apb | ahb | i3c
+  - protocol: apb               # apb | ahb | i3c | lpdp
     name: apb_cfg
     role: master                # see roles below; 'monitor' => passive wrapper
 ```
@@ -118,6 +118,7 @@ basename), so the generated env is self-contained.
 | `apb` | master, slave, monitor | `addr_width=32`, `data_width=32` |
 | `ahb` | master, slave, monitor | `addr_width=32`, `data_width=32` |
 | `i3c` | controller, target, monitor (aliases: master→controller, slave→target) | `ibi_enable=1`, `hot_join_enable=0`, `static_addr=7'h50`, `i3c_only_bus=1` |
+| `lpdp` | source, sink, monitor (aliases: master→source, slave→sink) | `num_lanes=4`, `link_rate_mbps=8100`, `mst_enable=0` |
 
 Knob values can be overridden directly in the YAML entry
 (e.g. `ibi_enable: false`). `role: monitor` seeds the wrapper passive.
@@ -318,7 +319,7 @@ done-criterion as its precondition — so an agent can run the whole flow:
 
 ```bash
 pip install -r requirements.txt
-python3 -m pytest tests/            # 33 tests: config merge/hash/validation,
+python3 -m pytest tests/            # 35 tests: config merge/hash/validation,
                                     # generation, re-run policy, scripts
 ```
 

@@ -1,0 +1,31 @@
+# ------------------------------------------------------------------------------
+# Example uvm-gen configuration featuring a Cadence LPDP VIP.
+#   python3 uvm_gen.py examples/lpdp_ip.yaml -o /path/to/work
+# Generating this produces lpdp_ip_verif/vip/lpdp_link_vip/ — the LPDP VIP
+# wrapper directory (cfg + agent shell + package) — plus sim/vip_lpdp.f.
+# Every value below is a starting point you edit afterwards.
+# ------------------------------------------------------------------------------
+ip_name: lpdp_ip
+
+dut:
+  module: lpdp_ip_top
+  rtl_filelist: ../rtl/dut.f      # relative to this file; $VARS are expanded.
+                                  # While it doesn't resolve, the flow uses the
+                                  # generated DUT stub automatically.
+
+config_name: default
+
+params:                            # RTL parameters/defines -> xrun flags and
+  NUM_LANES: 4                     # typed fields in lpdp_ip_env_cfg
+
+agents:                            # custom (non-VIP) interfaces
+  - name: ctrl
+    mode: active
+
+vips:                              # Cadence VIP instances (apb | ahb | i3c | lpdp)
+  - protocol: lpdp
+    name: lpdp_link
+    role: source                   # source | sink | monitor
+                                   #   (aliases: master->source, slave->sink;
+                                   #    'monitor' => passive wrapper)
+    num_lanes: 4                   # protocol knobs are overridable here
